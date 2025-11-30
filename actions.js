@@ -180,21 +180,22 @@ window.pasarTurno = pasarTurno;
 
 async function iniciarRonda() {
     const jugador = jugadores[0];
+    const btnIniciar = document.getElementById('btn-iniciar-ronda');
+    const textoNuevaRonda = 'Nueva ronda';
 
     if (!gameState.partidaIniciada) {
         gameState.partidaIniciada = true;
         gameState.rondaActual = 1;
         jugador.paRestantes = 3;
-        generarContratos();
 
-        const btnIniciar = document.getElementById('btn-iniciar-ronda');
-        if (btnIniciar) btnIniciar.textContent = 'NUEVA RONDA';
-
+        if (btnIniciar) btnIniciar.textContent = textoNuevaRonda;
         addLog(`--- RONDA ${gameState.rondaActual} INICIADA. Recibes 3 PA. ---`, 'ronda');
-        actualizarIU();
         await asegurarContratosCompletos();
+        actualizarIU();
         return;
     }
+
+    if (btnIniciar) btnIniciar.textContent = textoNuevaRonda;
 
     if (jugador.paRestantes > 0) {
         const confirmar = await mostrarConfirmacion(`Aún te quedan ${jugador.paRestantes} PA sin gastar. ¿Seguro que quieres pasar a la siguiente ronda?`);
@@ -210,16 +211,6 @@ async function iniciarRonda() {
     actualizarIU();
 
     await avanzarContratos();
-    await asegurarContratosCompletos();
-}
-
-function garantizarContratosActivos() {
-    if (typeof generarContratos !== 'function') return;
-    if (typeof contratosDisponibles === 'undefined') return;
-    const objetivo = typeof TOTAL_CONTRATOS_OBJETIVO === 'number' ? TOTAL_CONTRATOS_OBJETIVO : 6;
-    if (contratosDisponibles.length < objetivo) {
-        generarContratos();
-    }
 }
 
 // ===================================

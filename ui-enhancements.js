@@ -68,7 +68,7 @@
             const strong = card.querySelector('strong');
             const small = card.querySelector('small');
             if (strong) strong.textContent = 'Contrato pendiente';
-            if (small) small.textContent = 'Se repondra al iniciar la proxima ronda.';
+            if (small) small.textContent = 'Se repondrá al comenzar la siguiente ronda.';
         });
     };
 
