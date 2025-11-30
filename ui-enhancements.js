@@ -60,3 +60,25 @@
         logContainer.prepend(item);
     };
 })();
+
+(function enhanceContratoPlaceholders() {
+    const aplicarMensaje = () => {
+        const contenedores = document.querySelectorAll('#contratos-listado .contrato-placeholder');
+        contenedores.forEach(card => {
+            const strong = card.querySelector('strong');
+            const small = card.querySelector('small');
+            if (strong) strong.textContent = 'Contrato pendiente';
+            if (small) small.textContent = 'Se repondra al iniciar la proxima ronda.';
+        });
+    };
+
+    const contenedor = document.getElementById('contratos-listado');
+    if (!contenedor) {
+        window.addEventListener('load', enhanceContratoPlaceholders);
+        return;
+    }
+
+    aplicarMensaje();
+    const observer = new MutationObserver(aplicarMensaje);
+    observer.observe(contenedor, { childList: true, subtree: true });
+})();

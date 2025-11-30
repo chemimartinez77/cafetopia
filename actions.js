@@ -150,7 +150,7 @@ function iniciarJuego() {
     actualizarIU();
     // Mostrar etiqueta inicial del botón
     const btnIniciar = document.getElementById('btn-iniciar-ronda');
-    if (btnIniciar) btnIniciar.textContent = 'INICIAR PARTIDA';
+    if (btnIniciar) btnIniciar.textContent = 'Empezar partida';
 }
 
 // ===================================
@@ -188,10 +188,11 @@ async function iniciarRonda() {
         generarContratos();
 
         const btnIniciar = document.getElementById('btn-iniciar-ronda');
-        if (btnIniciar) btnIniciar.textContent = 'NUEVA RONDA';
+        if (btnIniciar) btnIniciar.textContent = 'Nueva ronda';
 
         addLog(`--- RONDA ${gameState.rondaActual} INICIADA. Recibes 3 PA. ---`, 'ronda');
         actualizarIU();
+        garantizarContratosActivos();
         return;
     }
 
@@ -209,6 +210,16 @@ async function iniciarRonda() {
     actualizarIU();
 
     await avanzarContratos();
+    garantizarContratosActivos();
+}
+
+function garantizarContratosActivos() {
+    if (typeof generarContratos !== 'function') return;
+    if (typeof contratosDisponibles === 'undefined') return;
+    const objetivo = typeof TOTAL_CONTRATOS_OBJETIVO === 'number' ? TOTAL_CONTRATOS_OBJETIVO : 6;
+    if (contratosDisponibles.length < objetivo) {
+        generarContratos();
+    }
 }
 
 // ===================================
