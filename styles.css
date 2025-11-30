@@ -515,6 +515,9 @@ h1 {
     margin: 10px 0;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
 }
 
 .contrato-card strong {
@@ -525,6 +528,52 @@ h1 {
 .contrato-card small {
     color: #7f8c8d;
     font-style: italic;
+}
+
+.contrato-card.contrato-placeholder {
+    border: 2px dashed #d6d6d6;
+    background: repeating-linear-gradient(45deg, #fafafa, #fafafa 10px, #f2f2f2 10px, #f2f2f2 20px);
+    text-align: center;
+    font-style: italic;
+    color: #7f8c8d;
+    box-shadow: none;
+}
+
+.contrato-card.contrato-placeholder strong {
+    color: #7f8c8d;
+}
+
+.contrato-card.contrato-placeholder small {
+    color: #95a5a6;
+}
+
+.contrato-card.contrato-desapareciendo {
+    animation: contratoFlashOut 2.3s ease forwards;
+    pointer-events: none;
+    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.35);
+}
+
+@keyframes contratoFlashOut {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+        filter: saturate(1);
+    }
+    25% {
+        background: #fffbea;
+    }
+    50% {
+        box-shadow: 0 0 18px rgba(255, 195, 0, 0.9);
+        transform: scale(1.02);
+    }
+    80% {
+        opacity: 0.55;
+        filter: saturate(0.5);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.96);
+    }
 }
 
 /* ================================

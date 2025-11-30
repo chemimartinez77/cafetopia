@@ -188,11 +188,10 @@ async function iniciarRonda() {
     
     pagarMantenimiento(jugador);
     avanzarCultivos(jugador);
-    avanzarContratos();  // Reducir rondas y eliminar expirados (solo una vez por ronda)
-    generarContratos(); // Rellenar hasta 6 contratos tras expiraciones/cumplidos
-    
     addLog(`--- RONDA ${gameState.rondaActual} INICIADA. Recibes 3 PA. ---`, 'ronda');
     actualizarIU();
+    
+    await avanzarContratos();  // Reducir rondas y eliminar expirados (solo una vez por ronda) y reponer
 }
 
 // Las funciones avanzarCultivos y pagarMantenimiento no necesitan cambios en su contenido.

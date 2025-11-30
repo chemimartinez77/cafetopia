@@ -43,7 +43,11 @@ const plantillasContratos = {
 };
 
 const objetivosContratos = { pequenos: 2, medianos: 2, grandes: 2 };
+const DURACION_ANIMACION_CONTRATO = 2300; // ms para fade/destello al desaparecer
+const TOTAL_CONTRATOS_OBJETIVO = Object.values(objetivosContratos).reduce((acc, val) => acc + val, 0);
 let contadorContratos = 0;
+
+const esperar = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 function crearContrato(categoria) {
   const plantillas = plantillasContratos[categoria];
@@ -160,8 +164,13 @@ async function intentarCumplirContrato(contratoId) {
     contratosCompletados.push(contrato);
     contratosDisponibles = contratosDisponibles.filter(c => c.id !== contratoId);
     
+    const animado = aplicarAnimacionSalidaContrato(contratoId);
+    
     actualizarIU();
-    generarContratos(); // reponer hueco si falta algún contrato
+    if (animado) {
+        await esperar(DURACION_ANIMACION_CONTRATO);
+    }
+    actualizarUIContratos();
 }
 
 // ===================================
@@ -275,6 +284,7 @@ async function procesarCafe(tipoGrano, tipoProceso) {
 
 function actualizarUIContratos() {
     let html = '<h3>📋 Contratos Disponibles</h3>';
+    const huecosPendientes = Math.max(0, TOTAL_CONTRATOS_OBJETIVO - contratosDisponibles.length);
     
     if (contratosDisponibles.length === 0) {
         html += '<p style="color: #999;">No hay contratos disponibles esta ronda</p>';
@@ -287,7 +297,7 @@ function actualizarUIContratos() {
                 : `Duración del contrato: ${contrato.rondasIniciales} rondas. Expira en ${contrato.rondasRestantes}.`;
             
             html += `
-                <div class="contrato-card" style="border-left: 4px solid ${colorTipo};">
+                <div class="contrato-card" data-contrato-id="${contrato.id}" style="border-left: 4px solid ${colorTipo};">
                     <strong>${contrato.nombre}</strong><br>
                     <small>${contrato.descripcion}</small><br>
                     📦 Requiere: ${contrato.cantidadRequerida} sacos de ${nombreCafe}<br>
@@ -302,8 +312,29 @@ function actualizarUIContratos() {
         });
     }
 
+    for (let i = 0; i < huecosPendientes; i++) {
+        html += `
+            <div class="contrato-card contrato-placeholder">
+                <strong>Hueco libre</strong><br>
+                <small>Se repondrá al iniciar la próxima ronda</small>
+            </div>
+        `;
+    }
+
     
     document.getElementById('contratos-listado').innerHTML = html;
+}
+
+function aplicarAnimacionSalidaContrato(contratoId) {
+    const card = document.querySelector(`[data-contrato-id="${contratoId}"]`);
+    if (!card) return false;
+
+    if (card.classList.contains('contrato-desapareciendo')) return true;
+
+    card.classList.add('contrato-desapareciendo');
+    const boton = card.querySelector('button');
+    if (boton) boton.setAttribute('disabled', 'disabled');
+    return true;
 }
 
 function obtenerNombreTipoCafe(tipo, grano) {
@@ -315,22 +346,28 @@ function obtenerNombreTipoCafe(tipo, grano) {
 }
 
 // Reducir rondas restantes de contratos
-function avanzarContratos() {
+async function avanzarContratos() {
     const contratosExpirados = [];
+    const expiradosIds = [];
     
-    contratosDisponibles = contratosDisponibles.filter(contrato => {
+    contratosDisponibles.forEach(contrato => {
         contrato.rondasRestantes--;
         if (contrato.rondasRestantes <= 0) {
             contratosExpirados.push(contrato.nombre);
-            return false;
+            expiradosIds.push(contrato.id);
+            contrato._marcarExpira = true;
         }
-        return true;
     });
     
-    if (contratosExpirados.length > 0) {
-        addLog(`❌ Contratos expirados: ${contratosExpirados.join(", ")}`, 'gasto');
+    if (expiradosIds.length > 0) {
+        expiradosIds.forEach(aplicarAnimacionSalidaContrato);
+        await esperar(DURACION_ANIMACION_CONTRATO);
+        contratosDisponibles = contratosDisponibles.filter(c => !c._marcarExpira);
+        if (contratosExpirados.length > 0) {
+            addLog('⚠️ Contratos expirados: ' + contratosExpirados.join(', '), 'gasto');
+        }
     }
 
-    // Rellenar huecos de contratos expirados
+    // Rellenar huecos (expirados o completados) tras la animación
     generarContratos();
 }
