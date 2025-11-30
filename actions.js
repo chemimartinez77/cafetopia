@@ -188,11 +188,11 @@ async function iniciarRonda() {
         generarContratos();
 
         const btnIniciar = document.getElementById('btn-iniciar-ronda');
-        if (btnIniciar) btnIniciar.textContent = 'Nueva ronda';
+        if (btnIniciar) btnIniciar.textContent = 'NUEVA RONDA';
 
         addLog(`--- RONDA ${gameState.rondaActual} INICIADA. Recibes 3 PA. ---`, 'ronda');
         actualizarIU();
-        garantizarContratosActivos();
+        await asegurarContratosCompletos();
         return;
     }
 
@@ -210,7 +210,7 @@ async function iniciarRonda() {
     actualizarIU();
 
     await avanzarContratos();
-    garantizarContratosActivos();
+    await asegurarContratosCompletos();
 }
 
 function garantizarContratosActivos() {
