@@ -1,0 +1,635 @@
+/* styles.css */
+html, body {
+    min-height: 800px;
+}
+
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #2c3e50; /* Color de texto por defecto oscuro */
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Estilos de la nueva estructura de columnas */
+.contenedor-principal {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: minmax(0, 1fr) 220px;
+    grid-template-areas: 
+        "juego contratos"
+        "log contratos";
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    min-height: 0;
+}
+
+.columna-juego {
+    grid-area: juego;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-right: 4px;
+    overflow-y: auto;
+}
+
+.columna-contratos {
+    grid-area: contratos;
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.columna-contratos h2 {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.columna-log {
+    grid-area: log;
+    background-color: #ffffff;
+    padding: 15px;
+    height: 220px;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.columna-log h2 {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+#game-log {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+/* Estilos de componentes */
+.tablero, #jugador-panel {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    color: #2c3e50; /* Color de texto por defecto oscuro */
+}
+
+/* .tablero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+} */
+
+.tablero {
+    background-image: url("banner.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.tablero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25); /* Ajusta opacidad si quieres */
+    z-index: 0;
+}
+
+/* Para que el contenido quede por encima del overlay */
+.tablero > * {
+    position: relative;
+    z-index: 1;
+}
+
+
+.tablero h2 {
+    margin: 0 0 12px 0;
+}
+
+.tablero-encabezado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.tablero-encabezado .titulo {
+    font-size: 1.4em;
+    font-weight: 700;
+}
+
+.tablero-encabezado .marca {
+    margin-left: auto;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.ronda-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 1.2em;
+}
+
+.ronda-display.compacta {
+    margin-bottom: 0;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    font-size: 1em;
+}
+
+.ronda-label {
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.ronda-numero {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.3em;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.botones-ronda {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.jugador-stats { 
+    background-color: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px; 
+    margin-bottom: 20px;
+    font-weight: 600;
+    font-size: 1.1em;
+    color: #2c3e50; /* Color de texto oscuro */
+}
+
+.jugador-stats span {
+    color: #2c3e50; /* Asegurar que los números sean oscuros */
+}
+
+#jugador-panel h2 {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 10px;
+}
+
+#jugador-panel h3 {
+    color: #34495e;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+/* Botones de acción */
+.btn-accion { 
+    padding: 10px 18px;
+    margin: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-accion:hover:not([disabled]) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.btn-accion:active:not([disabled]) {
+    transform: translateY(0);
+}
+
+/* Estilos para el bloqueo de botones */
+.btn-accion[disabled] {
+    cursor: not-allowed;
+    opacity: 0.4;
+    background: #95a5a6;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Botones de ronda */
+#btn-pasar-turno,
+#btn-iniciar-ronda {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    background-color: #3498db;
+    color: white;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    flex: 1;
+    min-width: 180px;
+}
+
+#btn-pasar-turno:hover:not([disabled]),
+#btn-iniciar-ronda:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+}
+
+#btn-pasar-turno[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    background-color: #95a5a6;
+}
+
+/* Estilos de señalización */
+.btn-ronda-pendiente {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        opacity: 1; 
+        box-shadow: 0 3px 6px rgba(0,0,0,0.2), 0 0 20px rgba(56, 239, 125, 0.5);
+    }
+    50% { 
+        opacity: 0.8; 
+        box-shadow: 0 3px 6px rgba(0,0,0,0.2), 0 0 30px rgba(56, 239, 125, 0.8);
+    }
+}
+
+/* Inventario y parcelas */
+.inventario {
+    background-color: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    color: #333333; /* Color de texto oscuro para legibilidad */
+}
+
+.inventario h4 {
+    margin-top: 0;
+    color: #856404;
+}
+
+.inventario span {
+    color: #333333; /* Asegurar que los números también sean oscuros */
+    font-weight: 600;
+}
+
+#parcelas-listado {
+    background-color: #d1ecf1;
+    border: 2px solid #17a2b8;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 10px;
+}
+
+#parcelas-listado h4 {
+    margin-top: 0;
+    color: #0c5460;
+}
+
+.parcela-item {
+    background: white;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border-left: 4px solid #17a2b8;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    color: #2c3e50; /* Color de texto oscuro */
+}
+
+/* Estilos del log */
+.log-item {
+    border-bottom: 1px solid #e9ecef;
+    padding: 8px 0;
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+.log-item:last-child {
+    border-bottom: none;
+}
+
+/* ================================
+   MODAL DE VENTA DE GRANO
+   ================================ */
+
+#modalVenta {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+#modalVenta.mostrar {
+    display: flex;
+}
+
+#modalVenta > div {
+    background-color: #fff;
+    width: 380px;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.25s ease-out;
+}
+
+#modalVenta h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+#modalVenta p {
+    margin: 15px 0;
+    color: #34495e;
+}
+
+#modalVenta label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #2c3e50;
+}
+
+#modalVenta select {
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    width: 100%;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    font-size: 1em;
+}
+
+#modalVenta button {
+    padding: 10px 20px;
+    margin-top: 10px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1em;
+    transition: all 0.3s ease;
+}
+
+#modalVenta button:first-of-type {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+#modalVenta button:first-of-type:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(56, 239, 125, 0.4);
+}
+
+#modalVenta button:last-of-type {
+    background-color: #95a5a6;
+    color: white;
+}
+
+#modalVenta button:last-of-type:hover {
+    background-color: #7f8c8d;
+}
+
+#modal-ganancia-estimada {
+    font-weight: bold;
+    color: #27ae60;
+    font-size: 1.2em;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from { 
+        transform: translateY(-30px); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translateY(0); 
+        opacity: 1; 
+    }
+}
+
+/* Scroll personalizado para el log */
+.columna-log::-webkit-scrollbar {
+    width: 8px;
+}
+
+.columna-log::-webkit-scrollbar-track,
+.columna-contratos::-webkit-scrollbar-track,
+.columna-juego::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.columna-log::-webkit-scrollbar-thumb,
+.columna-contratos::-webkit-scrollbar-thumb,
+.columna-juego::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.columna-log::-webkit-scrollbar-thumb:hover,
+.columna-contratos::-webkit-scrollbar-thumb:hover,
+.columna-juego::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Responsividad básica */
+@media (max-width: 900px) {
+    .contenedor-principal {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 200px auto;
+        grid-template-areas: 
+            "juego"
+            "log"
+            "contratos"
+            ;
+    }
+    
+    .columna-log {
+        height: 200px;
+    }
+}
+
+.contrato-card {
+    background: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.contrato-card strong {
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.contrato-card small {
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+/* ================================
+   MODAL DE ALERTA/CONFIRMACIÓN
+   ================================ */
+
+#modalAlerta {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px);
+    z-index: 200;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+#modalAlerta.mostrar {
+    display: flex;
+}
+
+.modal-alerta-contenido {
+    background-color: #fff;
+    width: 420px;
+    max-width: 90vw;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.25s ease-out;
+    text-align: center;
+}
+
+.modal-alerta-icono {
+    font-size: 4em;
+    margin-bottom: 15px;
+    line-height: 1;
+}
+
+.modal-alerta-contenido h3 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 1.5em;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.modal-alerta-contenido p {
+    margin: 0 0 25px 0;
+    color: #34495e;
+    font-size: 1.1em;
+    line-height: 1.6;
+}
+
+.modal-alerta-botones {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.btn-modal-aceptar,
+.btn-modal-cancelar {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1em;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.btn-modal-aceptar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-modal-aceptar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-modal-cancelar {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.btn-modal-cancelar:hover {
+    background-color: #7f8c8d;
+    transform: translateY(-2px);
+}
+
+/* Variantes de icono según tipo */
+.modal-alerta-contenido.tipo-error .modal-alerta-icono {
+    font-size: 4em;
+}
+
+.modal-alerta-contenido.tipo-advertencia .modal-alerta-icono {
+    font-size: 4em;
+}
+
+.modal-alerta-contenido.tipo-info .modal-alerta-icono {
+    font-size: 4em;
+}
+
+.modal-alerta-contenido.tipo-pregunta .modal-alerta-icono {
+    font-size: 4em;
+}
