@@ -1,19 +1,14 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CAFETOPIA - Prototipo Digital</title>
-    
     <link rel="stylesheet" href="styles.css">
-    
 </head>
 <body>
     <div class="contenedor-principal">
-        
         <div class="columna-juego">
-            
             <div class="tablero">
                 <h2 class="tablero-encabezado">
                     <span class="titulo">Estado del Juego</span>
@@ -23,8 +18,6 @@
                     </span>
                     <span class="marca">CAFETOPIA</span>
                 </h2>
-
-                
                 <div class="botones-ronda">
                     <button id="btn-iniciar-ronda" onclick="iniciarRonda()">INICIAR NUEVA RONDA</button>
                     <button id="btn-pasar-turno" onclick="pasarTurno()">PASAR TURNO</button>
@@ -34,23 +27,24 @@
             <div id="jugador-panel">
                 <h2>Panel de Jugador 1</h2>
                 <div class="jugador-stats">
-                    Dinero: <span id="dinero">5000</span>€ | PV: <span id="pv">0</span> | PA Restantes: <span id="pa-restantes">0</span>
+                    Dinero: <span id="dinero">5000</span>&euro; | PV: <span id="pv">0</span> | PA Restantes: <span id="pa-restantes">0</span>
                 </div>
 
                 <h3>1. Acciones de Cultivo (Coste 1 PA)</h3>
-                <button class="btn-accion" onclick="plantar('A')">Plantar Robusta (1 Ronda, 500€)</button>
-                <button class="btn-accion" onclick="plantar('B')">Plantar Arábica (2 Rondas, 1000€)</button>
-                <button class="btn-accion" onclick="plantar('E')">Plantar Geisha (4 Rondas, 3000€)</button>
-                
+                <button class="btn-accion" onclick="plantar('A')">Plantar Robusta (1 Ronda, 500&euro;)</button>
+                <button class="btn-accion" onclick="plantar('B')">Plantar Ar&aacute;bica (2 Rondas, 1000&euro;)</button>
+                <button class="btn-accion" onclick="plantar('E')">Plantar Geisha (4 Rondas, 3000&euro;)</button>
+
                 <h3>2. Acciones de Venta (Grano Verde) (Coste 1 PA)</h3>
                 <button class="btn-accion" id="btn-vender-A" onclick="abrirModalVenta('A')" disabled>Vender Grano Verde Robusta</button>
-                <button class="btn-accion" id="btn-vender-B" onclick="abrirModalVenta('B')" disabled>Vender Grano Verde Arábica</button>
+                <button class="btn-accion" id="btn-vender-B" onclick="abrirModalVenta('B')" disabled>Vender Grano Verde Ar&aacute;bica</button>
                 <button class="btn-accion" id="btn-vender-E" onclick="abrirModalVenta('E')" disabled>Vender Grano Verde Geisha</button>
-                <h3>3. Procesamiento de Café (Coste 1 PA)</h3>
+
+                <h3>3. Procesamiento de Caf&eacute; (Coste 1 PA)</h3>
                 <div class="tostadoras-grid">
                     <div class="tostadora-card">
                         <h4>Robusta</h4>
-                        <p class="tostadora-estado" id="tostadora-status-A">Sin máquina</p>
+                        <p class="tostadora-estado" id="tostadora-status-A">Sin m&aacute;quina</p>
                         <div class="tostadora-botones">
                             <button class="btn-accion btn-comprar" data-ignorar-pa="true" id="btn-comprar-tostadora-A" onclick="comprarTostadora('A')">
                                 Comprar Tostadora Robusta
@@ -61,20 +55,20 @@
                         </div>
                     </div>
                     <div class="tostadora-card">
-                        <h4>Arábica</h4>
-                        <p class="tostadora-estado" id="tostadora-status-B">Sin máquina</p>
+                        <h4>Ar&aacute;bica</h4>
+                        <p class="tostadora-estado" id="tostadora-status-B">Sin m&aacute;quina</p>
                         <div class="tostadora-botones">
                             <button class="btn-accion btn-comprar" data-ignorar-pa="true" id="btn-comprar-tostadora-B" onclick="comprarTostadora('B')">
-                                Comprar Tostadora Arábica
+                                Comprar Tostadora Ar&aacute;bica
                             </button>
                             <button class="btn-accion btn-tostadora" id="btn-usar-tostadora-B" onclick="abrirTostadora('B')" disabled>
-                                Tostadora Arábica
+                                Tostadora Ar&aacute;bica
                             </button>
                         </div>
                     </div>
                     <div class="tostadora-card">
                         <h4>Geisha</h4>
-                        <p class="tostadora-estado" id="tostadora-status-E">Sin máquina</p>
+                        <p class="tostadora-estado" id="tostadora-status-E">Sin m&aacute;quina</p>
                         <div class="tostadora-botones">
                             <button class="btn-accion btn-comprar" data-ignorar-pa="true" id="btn-comprar-tostadora-E" onclick="comprarTostadora('E')">
                                 Comprar Tostadora Geisha
@@ -85,21 +79,29 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
+        <div class="columna-centro">
+            <div class="panel-inventario">
                 <h3>4. Inventario Total</h3>
                 <div class="inventario">
                     <h4>Grano Verde (Venta de Emergencia)</h4>
                     Robusta Verde: <span id="inv-verde-A">0</span> sacos<br>
-                    Arábica Verde: <span id="inv-verde-B">0</span> sacos<br>
+                    Ar&aacute;bica Verde: <span id="inv-verde-B">0</span> sacos<br>
                     Geisha Verde: <span id="inv-verde-E">0</span> sacos
-                    
                     <h4>Caf&eacute; Procesado</h4>
                     Robusta Caf&eacute; Premium: <span id="inv-tostado_artesanal-A">0</span> sacos<br>
                     Robusta Caf&eacute; Comercial: <span id="inv-tostado_industrial-A">0</span> sacos<br>
-                    Arabica Caf&eacute; Premium: <span id="inv-tostado_artesanal-B">0</span> sacos<br>
-                    Arabica Caf&eacute; Comercial: <span id="inv-tostado_industrial-B">0</span> sacos<br>
+                    Ar&aacute;bica Caf&eacute; Premium: <span id="inv-tostado_artesanal-B">0</span> sacos<br>
+                    Ar&aacute;bica Caf&eacute; Comercial: <span id="inv-tostado_industrial-B">0</span> sacos<br>
                     Geisha Caf&eacute; Premium: <span id="inv-tostado_artesanal-E">0</span> sacos<br>
                     Geisha Caf&eacute; Comercial: <span id="inv-tostado_industrial-E">0</span> sacos
+                </div>
+            </div>
+            <div class="panel-log">
+                <h2>Registro de Partida</h2>
+                <div id="game-log"></div>
             </div>
         </div>
 
@@ -107,78 +109,61 @@
             <h2>Contratos</h2>
             <div id="contratos-listado"></div>
         </div>
-
-        <div class="columna-log">
-            <h2>Registro de Partida</h2>
-            <div id="game-log"></div>
-        </div>
-        
     </div>
 
     <div id="modalVenta">
-            <div>
-                <h3>Vender Grano Verde (<span id="modal-tipo-grano"></span>)</h3>
+        <div>
+            <h3>Vender Grano Verde (<span id="modal-tipo-grano"></span>)</h3>
+            <p>Inventario disponible: <span id="modal-stock"></span> sacos</p>
+            <label for="cantidadVenta">Cantidad:</label>
+            <select id="cantidadVenta" name="cantidadVenta"></select>
+            <p>Ganancia Estimada: <span id="modal-ganancia-estimada">0.00&euro;</span></p>
+            <button onclick="ejecutarVenta()">Confirmar Venta (1 PA)</button>
+            <button onclick="cerrarModalVenta()">Cancelar</button>
+        </div>
+    </div>
 
-                <p>Inventario disponible: <span id="modal-stock"></span> sacos</p>
-
-                <label for="cantidadVenta">Cantidad:</label>
-                <select id="cantidadVenta" name="cantidadVenta"></select>
-
-                <p>Ganancia Estimada: <span id="modal-ganancia-estimada">0.00€</span></p>
-
-                <button onclick="ejecutarVenta()">Confirmar Venta (1 PA)</button>
-                <button onclick="cerrarModalVenta()">Cancelar</button>
+    <div id="modalTostado">
+        <div class="modal-tostado-contenido">
+            <h3>Tostadora <span id="modal-tostado-variedad"></span></h3>
+            <p>Stock disponible: <strong><span id="modal-tostado-stock"></span></strong> sacos verdes</p>
+            <div class="modal-tostado-metodos">
+                <label>
+                    <input type="radio" name="metodo-tostado" value="TOSTADO_ARTESANAL" checked>
+                    Artesanal <span class="modal-tostado-detalle">Calidad alta, menor cantidad</span>
+                </label>
+                <label>
+                    <input type="radio" name="metodo-tostado" value="TOSTADO_INDUSTRIAL">
+                    Comercial <span class="modal-tostado-detalle">M&aacute;s cantidad, menor calidad</span>
+                </label>
+            </div>
+            <label for="modal-tostado-cantidad">Cantidad a procesar</label>
+            <input type="number" id="modal-tostado-cantidad" min="1" value="1">
+            <p>Coste estimado: <strong id="modal-tostado-coste">0.00&euro;</strong></p>
+            <p>Producci&oacute;n estimada: <strong id="modal-tostado-produccion">--</strong></p>
+            <div class="modal-tostado-botones">
+                <button class="btn-modal-aceptar" onclick="confirmarTostado()">Procesar (1 PA)</button>
+                <button class="btn-modal-cancelar" onclick="cerrarModalTostado()">Cancelar</button>
             </div>
         </div>
+    </div>
 
-        <div id="modalTostado">
-            <div class="modal-tostado-contenido">
-                <h3>Tostadora <span id="modal-tostado-variedad"></span></h3>
-                <p>Stock disponible: <strong><span id="modal-tostado-stock"></span></strong> sacos verdes</p>
-
-                <div class="modal-tostado-metodos">
-                    <label>
-                        <input type="radio" name="metodo-tostado" value="TOSTADO_ARTESANAL" checked>
-                        Artesanal <span class="modal-tostado-detalle">Calidad alta, menor cantidad</span>
-                    </label>
-                    <label>
-                        <input type="radio" name="metodo-tostado" value="TOSTADO_INDUSTRIAL">
-                        Comercial <span class="modal-tostado-detalle">Más cantidad, menor calidad</span>
-                    </label>
-                </div>
-
-                <label for="modal-tostado-cantidad">Cantidad a procesar</label>
-                <input type="number" id="modal-tostado-cantidad" min="1" value="1">
-
-                <p>Coste estimado: <strong id="modal-tostado-coste">0.00€</strong></p>
-                <p>Producción estimada: <strong id="modal-tostado-produccion">--</strong></p>
-
-                <div class="modal-tostado-botones">
-                    <button class="btn-modal-aceptar" onclick="confirmarTostado()">Procesar (1 PA)</button>
-                    <button class="btn-modal-cancelar" onclick="cerrarModalTostado()">Cancelar</button>
-                </div>
+    <div id="modalAlerta">
+        <div class="modal-alerta-contenido">
+            <div class="modal-alerta-icono" id="modal-alerta-icono">??</div>
+            <h3 id="modal-alerta-titulo">Alerta</h3>
+            <p id="modal-alerta-mensaje"></p>
+            <div class="modal-alerta-botones">
+                <button id="modal-alerta-aceptar" class="btn-modal-aceptar">Aceptar</button>
+                <button id="modal-alerta-cancelar" class="btn-modal-cancelar" style="display: none;">Cancelar</button>
             </div>
         </div>
-
-        <!-- Modal de Alerta/Confirmación Personalizado -->
-        <div id="modalAlerta">
-            <div class="modal-alerta-contenido">
-                <div class="modal-alerta-icono" id="modal-alerta-icono">??</div>
-                <h3 id="modal-alerta-titulo">Alerta</h3>
-                <p id="modal-alerta-mensaje"></p>
-                <div class="modal-alerta-botones">
-                    <button id="modal-alerta-aceptar" class="btn-modal-aceptar">Aceptar</button>
-                    <button id="modal-alerta-cancelar" class="btn-modal-cancelar" style="display: none;">Cancelar</button>
-                </div>
-            </div>
-        </div>
+    </div>
 
     <script src="game.js"></script>
     <script src="modals.js"></script>
     <script src="contratos.js"></script>
     <script src="actions.js"></script>
+    <script src="ui-enhancements.js"></script>
 </body>
 </html>
-
-
-

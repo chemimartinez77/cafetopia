@@ -243,12 +243,12 @@ function avanzarCultivos(jugador) {
                     const tipoGrano = partes[partes.length - 1];
                     const nombreVariedad = variedades[tipoGrano].nombre;
                     const nombreProceso = tipoProceso === 'tostado_artesanal' ? 'Cafe Premium' : 'Cafe Comercial';
-                    addLog(`☕ Procesamiento completado: +${parcela.produccionSacos} sacos de ${nombreVariedad} ${nombreProceso}`, 'ganancia');
+                    addLog(Procesamiento completado: + sacos de  , 'ganancia', '??');
                 } else {
                     // Cosecha lista!
                     jugador.inventario[`verde_${parcela.tipo}`] += parcela.produccionSacos;
                     const nombreVariedad = variedades[parcela.tipo].nombre;
-                    addLog(`¡Cosecha lista! ${nombreVariedad}: +${parcela.produccionSacos} sacos.`, 'ganancia');
+                    addLog(�Cosecha lista! : + sacos., 'cosecha');
                     console.log(`¡COSECHA LISTA! ${nombreVariedad}: +${parcela.produccionSacos} sacos.`);
                 }
             } else {
@@ -343,20 +343,38 @@ async function venderMercadoLocal(tipoGrano) {
     actualizarIU();
 }
 
-function addLog(mensaje, tipo = 'accion') {
+function addLog(mensaje, tipo = 'accion', iconoPersonalizado = null) {
     const logContainer = document.getElementById('game-log');
+    if (!logContainer) return;
+
     const item = document.createElement('p');
     item.classList.add('log-item');
     
-    let color = '';
-    if (tipo === 'ronda') color = '#0056b3'; // Azul para el inicio de ronda
-    if (tipo === 'ganancia') color = '#28a745'; // Verde para el dinero
-    if (tipo === 'gasto') color = '#dc3545'; // Rojo para los gastos
-    
-    item.style.color = color;
-    item.innerHTML = `[R${gameState.rondaActual}] ${mensaje}`;
-    
-    // Añadir el mensaje al inicio del log (los más recientes arriba)
+    const colores = {
+        ronda: '#0056b3',
+        ganancia: '#28a745',
+        gasto: '#dc3545',
+        plantar: '#dc3545',
+        contrato: '#1abc9c',
+        cosecha: '#16a085',
+        alerta: '#e67e22'
+    };
+
+    const iconos = {
+        ronda: '🌀',
+        ganancia: '💰',
+        gasto: '💸',
+        plantar: '🪴',
+        accion: '⚙️',
+        contrato: '📜',
+        cosecha: '🌾',
+        alerta: '⚠️',
+        procesamiento: '🔥'
+    };
+
+    item.style.color = colores[tipo] || '';
+    const icono = iconoPersonalizado || iconos[tipo] || '📝';
+    item.innerHTML = `<span class="log-icon">${icono}</span><span>[R${gameState.rondaActual}] ${mensaje}</span>`;
     logContainer.prepend(item); 
 }
 
