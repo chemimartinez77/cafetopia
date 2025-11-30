@@ -34,54 +34,72 @@
             <div id="jugador-panel">
                 <h2>Panel de Jugador 1</h2>
                 <div class="jugador-stats">
-                    Dinero: <span id="dinero">5000</span>‚Ç¨ | PV: <span id="pv">0</span> | PA Restantes: <span id="pa-restantes">0</span>
+                    Dinero: <span id="dinero">5000</span>Ä | PV: <span id="pv">0</span> | PA Restantes: <span id="pa-restantes">0</span>
                 </div>
 
                 <h3>1. Acciones de Cultivo (Coste 1 PA)</h3>
-                <button class="btn-accion" onclick="plantar('A')">Plantar Robusta (1 Ronda, 500‚Ç¨)</button>
-                <button class="btn-accion" onclick="plantar('B')">Plantar Ar√°bica (2 Rondas, 1000‚Ç¨)</button>
-                <button class="btn-accion" onclick="plantar('E')">Plantar Geisha (4 Rondas, 3000‚Ç¨)</button>
+                <button class="btn-accion" onclick="plantar('A')">Plantar Robusta (1 Ronda, 500Ä)</button>
+                <button class="btn-accion" onclick="plantar('B')">Plantar Ar·bica (2 Rondas, 1000Ä)</button>
+                <button class="btn-accion" onclick="plantar('E')">Plantar Geisha (4 Rondas, 3000Ä)</button>
                 
                 <h3>2. Acciones de Venta (Grano Verde) (Coste 1 PA)</h3>
                 <button class="btn-accion" id="btn-vender-A" onclick="abrirModalVenta('A')" disabled>Vender Grano Verde Robusta</button>
-                <button class="btn-accion" id="btn-vender-B" onclick="abrirModalVenta('B')" disabled>Vender Grano Verde Ar√°bica</button>
+                <button class="btn-accion" id="btn-vender-B" onclick="abrirModalVenta('B')" disabled>Vender Grano Verde Ar·bica</button>
                 <button class="btn-accion" id="btn-vender-E" onclick="abrirModalVenta('E')" disabled>Vender Grano Verde Geisha</button>
-                <h3>3. Procesamiento de Caf√© (Coste 1 PA)</h3>
-                <button class="btn-accion btn-procesar" data-grano="A" data-proceso="TOSTADO_ARTESANAL" onclick="procesarCafe('A', 'TOSTADO_ARTESANAL')">
-                    Tostar Artesanal - Robusta
-                </button>
-                <button class="btn-accion btn-procesar" data-grano="B" data-proceso="TOSTADO_ARTESANAL" onclick="procesarCafe('B', 'TOSTADO_ARTESANAL')">
-                    Tostar Artesanal - Ar√°bica
-                </button>
-                <button class="btn-accion btn-procesar" data-grano="E" data-proceso="TOSTADO_ARTESANAL" onclick="procesarCafe('E', 'TOSTADO_ARTESANAL')">
-                    Tostar Artesanal - Geisha
-                </button>
-                <button class="btn-accion btn-procesar" data-grano="A" data-proceso="TOSTADO_INDUSTRIAL" onclick="procesarCafe('A', 'TOSTADO_INDUSTRIAL')">
-                    Tostar Industrial - Robusta
-                </button>
-                <button class="btn-accion btn-procesar" data-grano="B" data-proceso="TOSTADO_INDUSTRIAL" onclick="procesarCafe('B', 'TOSTADO_INDUSTRIAL')">
-                    Tostar Industrial - Ar√°bica
-                </button>
+                <h3>3. Procesamiento de CafÈ (Coste 1 PA)</h3>
+                <div class="tostadoras-grid">
+                    <div class="tostadora-card">
+                        <h4>Robusta</h4>
+                        <p class="tostadora-estado" id="tostadora-status-A">Sin m·quina</p>
+                        <div class="tostadora-botones">
+                            <button class="btn-accion btn-comprar" data-ignorar-pa="true" id="btn-comprar-tostadora-A" onclick="comprarTostadora('A')">
+                                Comprar Tostadora Robusta
+                            </button>
+                            <button class="btn-accion btn-tostadora" id="btn-usar-tostadora-A" onclick="abrirTostadora('A')" disabled>
+                                Tostadora Robusta
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tostadora-card">
+                        <h4>Ar·bica</h4>
+                        <p class="tostadora-estado" id="tostadora-status-B">Sin m·quina</p>
+                        <div class="tostadora-botones">
+                            <button class="btn-accion btn-comprar" data-ignorar-pa="true" id="btn-comprar-tostadora-B" onclick="comprarTostadora('B')">
+                                Comprar Tostadora Ar·bica
+                            </button>
+                            <button class="btn-accion btn-tostadora" id="btn-usar-tostadora-B" onclick="abrirTostadora('B')" disabled>
+                                Tostadora Ar·bica
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tostadora-card">
+                        <h4>Geisha</h4>
+                        <p class="tostadora-estado" id="tostadora-status-E">Sin m·quina</p>
+                        <div class="tostadora-botones">
+                            <button class="btn-accion btn-comprar" data-ignorar-pa="true" id="btn-comprar-tostadora-E" onclick="comprarTostadora('E')">
+                                Comprar Tostadora Geisha
+                            </button>
+                            <button class="btn-accion btn-tostadora" id="btn-usar-tostadora-E" onclick="abrirTostadora('E')" disabled>
+                                Tostadora Geisha
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 <h3>4. Inventario Total</h3>
                 <div class="inventario">
                     <h4>Grano Verde (Venta de Emergencia)</h4>
                     Robusta Verde: <span id="inv-verde-A">0</span> sacos<br>
-                    Ar√°bica Verde: <span id="inv-verde-B">0</span> sacos<br>
+                    Ar·bica Verde: <span id="inv-verde-B">0</span> sacos<br>
                     Geisha Verde: <span id="inv-verde-E">0</span> sacos
                     
-                    <h4>Caf√© Procesado</h4>
-                    Ar√°bica Tostado Industrial: <span id="inv-tostado_industrial-B">0</span> sacos<br>
-                    Ar√°bica Tostado Artesanal: <span id="inv-tostado_artesanal-B">0</span> sacos<br>
-                    Robusta Tostado Artesanal: <span id="inv-tostado_artesanal-A">0</span> sacos<br>
-                    Robusta Tostado Industrial: <span id="inv-tostado_industrial-A">0</span> sacos<br>
-                    Geisha Tostado Artesanal: <span id="inv-tostado_artesanal-E">0</span> sacos
-                </div>
-                
-                <h3>5. Cultivos Activos</h3>
-                <div id="parcelas-listado">
-                    <h4>Parcelas en Crecimiento:</h4>
-                </div>
+                    <h4>Caf&eacute; Procesado</h4>
+                    Robusta Caf&eacute; Premium: <span id="inv-tostado_artesanal-A">0</span> sacos<br>
+                    Robusta Caf&eacute; Comercial: <span id="inv-tostado_industrial-A">0</span> sacos<br>
+                    Arabica Caf&eacute; Premium: <span id="inv-tostado_artesanal-B">0</span> sacos<br>
+                    Arabica Caf&eacute; Comercial: <span id="inv-tostado_industrial-B">0</span> sacos<br>
+                    Geisha Caf&eacute; Premium: <span id="inv-tostado_artesanal-E">0</span> sacos<br>
+                    Geisha Caf&eacute; Comercial: <span id="inv-tostado_industrial-E">0</span> sacos
             </div>
         </div>
 
@@ -106,17 +124,46 @@
                 <label for="cantidadVenta">Cantidad:</label>
                 <select id="cantidadVenta" name="cantidadVenta"></select>
 
-                <p>Ganancia Estimada: <span id="modal-ganancia-estimada">0.00‚Ç¨</span></p>
+                <p>Ganancia Estimada: <span id="modal-ganancia-estimada">0.00Ä</span></p>
 
                 <button onclick="ejecutarVenta()">Confirmar Venta (1 PA)</button>
                 <button onclick="cerrarModalVenta()">Cancelar</button>
             </div>
         </div>
 
-        <!-- Modal de Alerta/Confirmaci√≥n Personalizado -->
+        <div id="modalTostado">
+            <div class="modal-tostado-contenido">
+                <h3>Tostadora <span id="modal-tostado-variedad"></span></h3>
+                <p>Stock disponible: <strong><span id="modal-tostado-stock"></span></strong> sacos verdes</p>
+
+                <div class="modal-tostado-metodos">
+                    <label>
+                        <input type="radio" name="metodo-tostado" value="TOSTADO_ARTESANAL" checked>
+                        Artesanal <span class="modal-tostado-detalle">Calidad alta, menor cantidad</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="metodo-tostado" value="TOSTADO_INDUSTRIAL">
+                        Comercial <span class="modal-tostado-detalle">M·s cantidad, menor calidad</span>
+                    </label>
+                </div>
+
+                <label for="modal-tostado-cantidad">Cantidad a procesar</label>
+                <input type="number" id="modal-tostado-cantidad" min="1" value="1">
+
+                <p>Coste estimado: <strong id="modal-tostado-coste">0.00Ä</strong></p>
+                <p>ProducciÛn estimada: <strong id="modal-tostado-produccion">--</strong></p>
+
+                <div class="modal-tostado-botones">
+                    <button class="btn-modal-aceptar" onclick="confirmarTostado()">Procesar (1 PA)</button>
+                    <button class="btn-modal-cancelar" onclick="cerrarModalTostado()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Alerta/ConfirmaciÛn Personalizado -->
         <div id="modalAlerta">
             <div class="modal-alerta-contenido">
-                <div class="modal-alerta-icono" id="modal-alerta-icono">‚ö†Ô∏è</div>
+                <div class="modal-alerta-icono" id="modal-alerta-icono">??</div>
                 <h3 id="modal-alerta-titulo">Alerta</h3>
                 <p id="modal-alerta-mensaje"></p>
                 <div class="modal-alerta-botones">
@@ -132,3 +179,6 @@
     <script src="actions.js"></script>
 </body>
 </html>
+
+
+

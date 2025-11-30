@@ -21,23 +21,23 @@
 const plantillasContratos = {
     // CONTRATOS PEQUEÑOS (1-4 sacos) - +15% beneficio
     pequenos: [
-        { cantidad: 1, tipo: "verde", granos: ["A", "B", "E"], nombres: ["Mercado Local", "Cafetería Vecina", "Comprador Privado"] },
-        { cantidad: 2, tipo: "verde", granos: ["A", "B"], nombres: ["Distribuidor Local", "Exportador Pequeño"] },
-        { cantidad: 3, tipo: "tostado_artesanal", granos: ["A", "B"], nombres: ["Cafetería Premium", "Boutique Local"] },
+        { cantidad: 1, tipo: "verde", granos: ["A", "B", "E"], nombres: ["Mercado Local", "CafeterÃ­a Vecina", "Comprador Privado"] },
+        { cantidad: 2, tipo: "verde", granos: ["A", "B"], nombres: ["Distribuidor Local", "Exportador PequeÃ±o"] },
+        { cantidad: 3, tipo: "tostado_artesanal", granos: ["A", "B"], nombres: ["CafeterÃ­a Premium", "Boutique Local"] },
         { cantidad: 4, tipo: "verde", granos: ["A"], nombres: ["Mercado Regional", "Tostador Artesanal"] }
     ],
     // CONTRATOS MEDIANOS (5-8 sacos) - +25% beneficio
     medianos: [
         { cantidad: 5, tipo: "verde", granos: ["A", "B"], nombres: ["Exportador Regional", "Distribuidor Nacional"] },
-        { cantidad: 6, tipo: "tostado_artesanal", granos: ["B"], nombres: ["Boutiques Europeas", "Cafeterías Premium"] },
-        { cantidad: 7, tipo: "tostado_industrial", granos: ["A", "B"], nombres: ["Supermercados Regionales", "Cadenas de Cafeterías"] },
-        { cantidad: 8, tipo: "verde", granos: ["A", "B"], nombres: ["Exportación Internacional", "Tostadores Profesionales"] }
+        { cantidad: 6, tipo: "tostado_artesanal", granos: ["B"], nombres: ["Boutiques Europeas", "CafeterÃ­as Premium"] },
+        { cantidad: 7, tipo: "tostado_industrial", granos: ["A", "B"], nombres: ["Supermercados Regionales", "Cadenas de CafeterÃ­as"] },
+        { cantidad: 8, tipo: "verde", granos: ["A", "B"], nombres: ["ExportaciÃ³n Internacional", "Tostadores Profesionales"] }
     ],
     // CONTRATOS GRANDES (9-12 sacos) - +30% beneficio
     grandes: [
         { cantidad: 9, tipo: "tostado_industrial", granos: ["A", "B"], nombres: ["Supermercados Internacionales", "Cadenas Globales"] },
-        { cantidad: 10, tipo: "verde", granos: ["A"], nombres: ["Exportación Masiva", "Distribuidor Mayorista"] },
-        { cantidad: 11, tipo: "tostado_artesanal", granos: ["B"], nombres: ["Boutiques Premium", "Exportación Gourmet"] },
+        { cantidad: 10, tipo: "verde", granos: ["A"], nombres: ["ExportaciÃ³n Masiva", "Distribuidor Mayorista"] },
+        { cantidad: 11, tipo: "tostado_artesanal", granos: ["B"], nombres: ["Boutiques Premium", "ExportaciÃ³n Gourmet"] },
         { cantidad: 12, tipo: "tostado_industrial", granos: ["A"], nombres: ["Supermercados USA", "Cadenas Globales"] }
     ]
 };
@@ -74,27 +74,27 @@ function crearContrato(categoria) {
 }
 
 
-// Función para calcular el pago según coste y tamaño
+// FunciÃ³n para calcular el pago segÃºn coste y tamaÃ±o
 function calcularPago(cantidad, tipo, grano) {
     const variedad = variedades[grano];
     let costeBase = 0;
     
     if (tipo === "verde") {
-        // Coste de plantación para obtener la cantidad
+        // Coste de plantaciÃ³n para obtener la cantidad
         const plantacionesNecesarias = Math.ceil(cantidad / variedad.produccionSacos);
         costeBase = plantacionesNecesarias * variedad.costePlantacion;
     } else {
-        // Coste de plantación + procesamiento
+        // Coste de plantaciÃ³n + procesamiento
         const plantacionesNecesarias = Math.ceil(cantidad / variedad.produccionSacos);
         costeBase = plantacionesNecesarias * variedad.costePlantacion;
         
-        // Añadir coste de procesamiento
+        // AÃ±adir coste de procesamiento
         const proceso = tipo === "tostado_artesanal" ? procesos.TOSTADO_ARTESANAL : procesos.TOSTADO_INDUSTRIAL;
         costeBase += cantidad * proceso.costeProcesado;
     }
     
-    // Aplicar margen según tamaño
-    let multiplicador = 1.15; // Pequeño
+    // Aplicar margen segÃºn tamaÃ±o
+    let multiplicador = 1.15; // PequeÃ±o
     if (cantidad >= 9) multiplicador = 1.30; // Grande
     else if (cantidad >= 5) multiplicador = 1.25; // Mediano
     
@@ -108,7 +108,7 @@ function calcularPago(cantidad, tipo, grano) {
 let contratosDisponibles = [];
 let contratosCompletados = [];
 
-// Generar contratos balanceados: 2 pequeños, 2 medianos, 2 grandes
+// Generar contratos balanceados: 2 pequeÃ±os, 2 medianos, 2 grandes
 function generarContratos() {
   const conteo = { pequenos: 0, medianos: 0, grandes: 0 };
   contratosDisponibles.forEach(c => { if (conteo[c.categoria] !== undefined) conteo[c.categoria]++; });
@@ -129,6 +129,7 @@ function generarContratos() {
 async function intentarCumplirContrato(contratoId) {
     const jugador = jugadores[0];
     const contrato = contratosDisponibles.find(c => c.id === contratoId);
+    const dineroAntes = jugador.dinero;
     
     if (!contrato) {
         await mostrarAlerta("Contrato no encontrado", 'error');
@@ -136,11 +137,11 @@ async function intentarCumplirContrato(contratoId) {
     }
     
     if (jugador.paRestantes < 1) {
-        await mostrarAlerta("¡No tienes PA suficientes!", 'advertencia');
+        await mostrarAlerta("Â¡No tienes PA suficientes!", 'advertencia');
         return;
     }
     
-    // Verificar si tiene el tipo de café requerido
+    // Verificar si tiene el tipo de cafÃ© requerido
     const inventarioKey = contrato.tipo === "verde" 
         ? `verde_${contrato.grano}` 
         : `${contrato.tipo}_${contrato.grano}`;
@@ -152,21 +153,24 @@ async function intentarCumplirContrato(contratoId) {
         return;
     }
     
-    // ¡CUMPLIR CONTRATO!
+    // Â¡CUMPLIR CONTRATO!
     jugador.paRestantes--;
     jugador.inventario[inventarioKey] -= contrato.cantidadRequerida;
     jugador.dinero += contrato.pago;
     jugador.puntosVictoria += contrato.prestigio;
     
-    addLog(`✅ CONTRATO CUMPLIDO: "${contrato.nombre}" - Ganancia: ${contrato.pago}€ (+${contrato.prestigio} PV)`, 'ganancia');
+    addLog(`âœ… CONTRATO CUMPLIDO: "${contrato.nombre}" - Ganancia: ${contrato.pago}â‚¬ (+${contrato.prestigio} PV)`, 'ganancia');
     
     // Mover a completados y quitar de disponibles
     contratosCompletados.push(contrato);
     contratosDisponibles = contratosDisponibles.filter(c => c.id !== contratoId);
     
     const animado = aplicarAnimacionSalidaContrato(contratoId);
-    
+
     actualizarIU();
+    if (typeof animarCambioDinero === 'function') {
+        animarCambioDinero(dineroAntes, jugador.dinero);
+    }
     if (animado) {
         await esperar(DURACION_ANIMACION_CONTRATO);
     }
@@ -177,113 +181,83 @@ async function intentarCumplirContrato(contratoId) {
 // SISTEMA DE PROCESAMIENTO
 // ===================================
 
-async function procesarCafe(tipoGrano, tipoProceso) {
+async function procesarCafe(tipoGrano, tipoProceso, cantidadForzada = null) {
     console.log(`procesarCafe llamado: tipoGrano=${tipoGrano}, tipoProceso=${tipoProceso}`);
     
     const jugador = jugadores[0];
     const proceso = procesos[tipoProceso];
     
-    // Validar que el proceso existe
     if (!proceso) {
         await mostrarAlerta(`Error: Proceso ${tipoProceso} no encontrado`, 'error');
         console.error(`Proceso no encontrado: ${tipoProceso}`, procesos);
-        return;
+        return false;
     }
-    
-    const inventarioVerdeKey = `verde_${tipoGrano}`;
-    const inventarioProcesadoKey = `${tipoProceso.toLowerCase()}_${tipoGrano}`;
-    
+
+    const tieneTostadora = jugador.activos.tostadoras && jugador.activos.tostadoras[tipoGrano];
+    if (!tieneTostadora) {
+        await mostrarAlerta(`Necesitas comprar la tostadora de ${variedades[tipoGrano].nombre} antes de procesar.`, 'info');
+        return false;
+    }
+
     if (jugador.paRestantes < proceso.paRequeridos) {
-        await mostrarAlerta("¡No tienes PA suficientes!", 'advertencia');
-        return;
+        await mostrarAlerta("��No tienes PA suficientes!", 'advertencia');
+        return false;
     }
-    
-    // Verificar si tiene la instalación
-    const tieneInstalacion = tipoProceso === "TOSTADO_ARTESANAL" 
-        ? jugador.activos.tostadora_artesanal 
-        : jugador.activos.produccion_industrial;
-    
-    if (!tieneInstalacion) {
-        const confirmar = await mostrarConfirmacion(
-            `No tienes ${proceso.nombre}. ¿Comprar por ${proceso.costeInversion}€?`,
-            '🏭 Comprar Instalación'
-        );
-        
-        if (!confirmar) return;
-        
-        if (jugador.dinero < proceso.costeInversion) {
-            await mostrarAlerta("No tienes suficiente dinero para la inversión", 'error');
-            return;
-        }
-        
-        // Comprar instalación
-        jugador.dinero -= proceso.costeInversion;
-        if (tipoProceso === "TOSTADO_ARTESANAL") {
-            jugador.activos.tostadora_artesanal = true;
-        } else {
-            jugador.activos.produccion_industrial = true;
-        }
-        
-        addLog(`🏭 Instalación comprada: ${proceso.nombre} (${proceso.costeInversion}€)`, 'gasto');
-    }
-    
-    // Determinar cuánto puede procesar
+
+    const inventarioVerdeKey = `verde_${tipoGrano}`;
     const stockVerde = jugador.inventario[inventarioVerdeKey] || 0;
-    
     if (stockVerde === 0) {
         await mostrarAlerta(`No tienes grano verde ${variedades[tipoGrano].nombre} para procesar`, 'info');
-        return;
+        return false;
     }
-    
-    const cantidadMaxima = tipoProceso === "TOSTADO_INDUSTRIAL" 
-        ? Math.min(stockVerde, proceso.capacidadMaxima) 
+
+    const capacidad = tipoProceso === 'TOSTADO_INDUSTRIAL' && proceso.capacidadMaxima
+        ? Math.min(stockVerde, proceso.capacidadMaxima)
         : stockVerde;
-    
-    // Preguntar cantidad (por ahora usamos prompt, luego se puede mejorar con un modal)
-    const cantidad = parseInt(prompt(`¿Cuántos sacos procesar? (1-${cantidadMaxima}):`, cantidadMaxima));
-    
-    if (!cantidad || cantidad < 1 || cantidad > cantidadMaxima) {
-        await mostrarAlerta("Cantidad no válida", 'error');
-        return;
+
+    let cantidad = cantidadForzada;
+    if (cantidad === null || Number.isNaN(parseInt(cantidad, 10))) {
+        const promptValor = Math.min(capacidad, 1);
+        cantidad = parseInt(prompt(`��Cu�ntos sacos procesar? (1-${capacidad}):`, promptValor), 10);
     }
-    
-    // Calcular coste total
+    cantidad = parseInt(cantidad, 10);
+
+    if (!cantidad || cantidad < 1 || cantidad > capacidad) {
+        await mostrarAlerta("Cantidad no v�lida", 'error');
+        return false;
+    }
+
     const costeTotal = cantidad * proceso.costeProcesado;
-    
     if (jugador.dinero < costeTotal) {
-        await mostrarAlerta(`No tienes suficiente dinero. Necesitas ${costeTotal}€`, 'error');
-        return;
+        await mostrarAlerta(`No tienes suficiente dinero. Necesitas ${costeTotal}�'�`, 'error');
+        return false;
     }
-    
-    // PROCESAR
+
     jugador.paRestantes--;
     jugador.dinero -= costeTotal;
     jugador.inventario[inventarioVerdeKey] -= cantidad;
-    
-    // Inicializar inventario procesado si no existe
+
+    const rendimiento = proceso.rendimiento ?? 1;
+    const produccionSacos = Math.max(1, Math.round(cantidad * rendimiento));
+    const baseKey = tipoProceso === 'TOSTADO_ARTESANAL' ? 'tostado_artesanal' : 'tostado_industrial';
+    const inventarioProcesadoKey = `${baseKey}_${tipoGrano}`;
+
     if (!jugador.inventario[inventarioProcesadoKey]) {
         jugador.inventario[inventarioProcesadoKey] = 0;
     }
-    
-    // Crear parcela de procesamiento (demora 1 ronda)
-    jugador.parcelas.push({
-        tipo: `${tipoProceso}_${tipoGrano}`,
-        rondasRestantes: proceso.tiempoProcesado,
-        produccionSacos: cantidad,
-        esProcesamiento: true
-    });
-    
-    addLog(`☕ Procesando ${cantidad} sacos de ${variedades[tipoGrano].nombre} (${proceso.nombre}) - Coste: ${costeTotal}€`, 'gasto');
+    jugador.inventario[inventarioProcesadoKey] += produccionSacos;
+
+    const etiquetaProceso = tipoProceso === 'TOSTADO_ARTESANAL' ? 'Cafe Premium' : 'Cafe Comercial';
+    addLog(`�~� Procesando ${cantidad} sacos de ${variedades[tipoGrano].nombre} (${proceso.nombre}) - Coste: ${costeTotal}�'�`, 'gasto');
+    addLog(`�o. Procesado completado: +${produccionSacos} sacos de ${variedades[tipoGrano].nombre} ${etiquetaProceso}`, 'ganancia');
+    await mostrarAlerta(`Se han tostado ${produccionSacos} sacos de ${variedades[tipoGrano].nombre} (${etiquetaProceso}).`, 'exito', 'Procesado completado');
     
     actualizarIU();
+    return true;
 }
 
-// ===================================
-// ACTUALIZACIÓN DE UI
-// ===================================
-
 function actualizarUIContratos() {
-    let html = '<h3>📋 Contratos Disponibles</h3>';
+    let html = '<h3>ðŸ“‹ Contratos Disponibles</h3>';
     const huecosPendientes = Math.max(0, TOTAL_CONTRATOS_OBJETIVO - contratosDisponibles.length);
     
     if (contratosDisponibles.length === 0) {
@@ -293,16 +267,16 @@ function actualizarUIContratos() {
             const nombreCafe = obtenerNombreTipoCafe(contrato.tipo, contrato.grano);
             const colorTipo = contrato.tipo === "verde" ? "#ffc107" : "#8B4513";
             const expiraTexto = contrato.rondasRestantes === 1
-                ? `Duración del contrato: ${contrato.rondasIniciales} rondas. Expira esta ronda.`
-                : `Duración del contrato: ${contrato.rondasIniciales} rondas. Expira en ${contrato.rondasRestantes}.`;
+                ? `DuraciÃ³n del contrato: ${contrato.rondasIniciales} rondas. Expira esta ronda.`
+                : `DuraciÃ³n del contrato: ${contrato.rondasIniciales} rondas. Expira en ${contrato.rondasRestantes}.`;
             
             html += `
                 <div class="contrato-card" data-contrato-id="${contrato.id}" style="border-left: 4px solid ${colorTipo};">
                     <strong>${contrato.nombre}</strong><br>
                     <small>${contrato.descripcion}</small><br>
-                    📦 Requiere: ${contrato.cantidadRequerida} sacos de ${nombreCafe}<br>
-                    💰 Pago: <span style="color: #27ae60; font-weight: bold;">${contrato.pago}€</span>
-                    ${contrato.prestigio > 0 ? ` | ⭐ +${contrato.prestigio} PV` : ''}<br>
+                    ðŸ“¦ Requiere: ${contrato.cantidadRequerida} sacos de ${nombreCafe}<br>
+                    ðŸ’° Pago: <span style="color: #27ae60; font-weight: bold;">${contrato.pago}â‚¬</span>
+                    ${contrato.prestigio > 0 ? ` | â­ +${contrato.prestigio} PV` : ''}<br>
                     ${expiraTexto}<br>
                     <button class="btn-accion" onclick="intentarCumplirContrato('${contrato.id}')" style="margin-top: 8px;">
                         Cumplir Contrato (1 PA)
@@ -316,7 +290,7 @@ function actualizarUIContratos() {
         html += `
             <div class="contrato-card contrato-placeholder">
                 <strong>Hueco libre</strong><br>
-                <small>Se repondrá al iniciar la próxima ronda</small>
+                <small>Se repondrÃ¡ al iniciar la prÃ³xima ronda</small>
             </div>
         `;
     }
@@ -337,11 +311,13 @@ function aplicarAnimacionSalidaContrato(contratoId) {
     return true;
 }
 
+
+
 function obtenerNombreTipoCafe(tipo, grano) {
     const base = variedades[grano].nombre;
     if (tipo === "verde") return `${base} Verde`;
-    if (tipo === "tostado_artesanal") return `${base} Tostado Artesanal`;
-    if (tipo === "tostado_industrial") return `${base} Tostado Industrial`;
+    if (tipo === "tostado_artesanal") return `${base} Cafe Premium`;
+    if (tipo === "tostado_industrial") return `${base} Cafe Comercial`;
     return base;
 }
 
@@ -364,10 +340,15 @@ async function avanzarContratos() {
         await esperar(DURACION_ANIMACION_CONTRATO);
         contratosDisponibles = contratosDisponibles.filter(c => !c._marcarExpira);
         if (contratosExpirados.length > 0) {
-            addLog('⚠️ Contratos expirados: ' + contratosExpirados.join(', '), 'gasto');
+            addLog('âš ï¸ Contratos expirados: ' + contratosExpirados.join(', '), 'gasto');
         }
     }
 
-    // Rellenar huecos (expirados o completados) tras la animación
+    // Rellenar huecos (expirados o completados) tras la animaciÃ³n
     generarContratos();
 }
+
+
+
+
+

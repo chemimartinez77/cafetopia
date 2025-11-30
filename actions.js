@@ -28,6 +28,9 @@ function actualizarIU() {
     
     const invTostadoIndB = document.getElementById('inv-tostado_industrial-B');
     if (invTostadoIndB) invTostadoIndB.textContent = jugador.inventario.tostado_industrial_B ?? 0;
+    
+    const invTostadoIndE = document.getElementById('inv-tostado_industrial-E');
+    if (invTostadoIndE) invTostadoIndE.textContent = jugador.inventario.tostado_industrial_E ?? 0;
 
     // === Lógica de Bloqueo de Botones ===
     const botonesAccion = document.querySelectorAll('.btn-accion');
@@ -86,18 +89,36 @@ function actualizarIU() {
         }
     }
 
-    // Actualizar botones de procesamiento
-    const botonesProcesar = document.querySelectorAll('.btn-procesar');
-    botonesProcesar.forEach(btn => {
-        const tipoGrano = btn.getAttribute('data-grano');
-        const inventarioKey = `verde_${tipoGrano}`;
-        const stockVerde = jugador.inventario[inventarioKey] || 0;
-        
-        // Habilitar si tiene PA y grano verde suficiente
-        if (paRestantes > 0 && stockVerde > 0) {
-            btn.removeAttribute('disabled');
-        } else {
-            btn.setAttribute('disabled', 'disabled');
+    // Actualizar paneles de tostadoras
+    const mapaTostadoras = jugador.activos.tostadoras || {};
+    ['A', 'B', 'E'].forEach(grano => {
+        const tieneTostadora = !!mapaTostadoras[grano];
+        const stockVerde = jugador.inventario[`verde_${grano}`] || 0;
+        const btnComprar = document.getElementById(`btn-comprar-tostadora-${grano}`);
+        const btnUsar = document.getElementById(`btn-usar-tostadora-${grano}`);
+        const estado = document.getElementById(`tostadora-status-${grano}`);
+
+        if (btnComprar) {
+            if (tieneTostadora) {
+                btnComprar.textContent = `Tostadora ${variedades[grano].nombre} adquirida`;
+                btnComprar.setAttribute('disabled', 'disabled');
+            } else {
+                btnComprar.textContent = `Comprar Tostadora ${variedades[grano].nombre}`;
+                btnComprar.removeAttribute('disabled');
+            }
+        }
+
+        if (btnUsar) {
+            if (tieneTostadora && paRestantes > 0 && stockVerde > 0) {
+                btnUsar.removeAttribute('disabled');
+            } else {
+                btnUsar.setAttribute('disabled', 'disabled');
+            }
+        }
+
+        if (estado) {
+            estado.textContent = tieneTostadora ? `Lista · ${stockVerde} sacos verdes` : 'Sin máquina';
+            estado.classList.toggle('tostadora-disponible', tieneTostadora);
         }
     });
 
@@ -221,7 +242,7 @@ function avanzarCultivos(jugador) {
                     const tipoProceso = partes.slice(0, -1).join('_').toLowerCase();
                     const tipoGrano = partes[partes.length - 1];
                     const nombreVariedad = variedades[tipoGrano].nombre;
-                    const nombreProceso = tipoProceso === 'tostado_artesanal' ? 'Tostado Artesanal' : 'Tostado Industrial';
+                    const nombreProceso = tipoProceso === 'tostado_artesanal' ? 'Cafe Premium' : 'Cafe Comercial';
                     addLog(`☕ Procesamiento completado: +${parcela.produccionSacos} sacos de ${nombreVariedad} ${nombreProceso}`, 'ganancia');
                 } else {
                     // Cosecha lista!
@@ -417,6 +438,157 @@ async function ejecutarVenta() {
     actualizarIU();
 }
 
+
+// ===================================
+// E. TOSTADORAS Y PROCESAMIENTO
+// ===================================
+
+let granoSeleccionadoTostadora = null;
+
+async function comprarTostadora(tipoGrano) {
+    const jugador = jugadores[0];
+    const estado = jugador.activos.tostadoras || {};
+    if (!jugador.activos.tostadoras) {
+        jugador.activos.tostadoras = estado;
+    }
+    if (estado[tipoGrano]) {
+        await mostrarAlerta(`Ya tienes la tostadora de ${variedades[tipoGrano].nombre}.`, 'info');
+        return;
+    }
+    const coste = costeTostadoras[tipoGrano];
+    const confirmar = await mostrarConfirmacion(
+        `Comprar Tostadora de ${variedades[tipoGrano].nombre} por ${coste}€?`,
+        'Comprar Tostadora'
+    );
+    if (!confirmar) return;
+    if (jugador.dinero < coste) {
+        await mostrarAlerta('No tienes suficiente dinero para esta máquina.', 'error');
+        return;
+    }
+    jugador.dinero -= coste;
+    estado[tipoGrano] = true;
+    addLog(`Tostadora comprada: ${variedades[tipoGrano].nombre} (${coste}€)`, 'gasto');
+    actualizarIU();
+}
+
+async function abrirTostadora(tipoGrano) {
+    const jugador = jugadores[0];
+    const estado = jugador.activos.tostadoras || {};
+    if (!estado[tipoGrano]) {
+        await mostrarAlerta('Compra la tostadora primero.', 'info');
+        return;
+    }
+    const stockVerde = jugador.inventario[`verde_${tipoGrano}`] || 0;
+    if (stockVerde === 0) {
+        await mostrarAlerta(`No tienes grano verde ${variedades[tipoGrano].nombre} para procesar.`, 'info');
+        return;
+    }
+    granoSeleccionadoTostadora = tipoGrano;
+    const modal = document.getElementById('modalTostado');
+    document.getElementById('modal-tostado-variedad').textContent = variedades[tipoGrano].nombre;
+    document.getElementById('modal-tostado-stock').textContent = stockVerde;
+    const inputCantidad = document.getElementById('modal-tostado-cantidad');
+    inputCantidad.value = 1;
+    inputCantidad.min = 1;
+    document.querySelectorAll('input[name="metodo-tostado"]').forEach(radio => {
+        radio.checked = radio.value === 'TOSTADO_ARTESANAL';
+    });
+    modal.classList.add('mostrar');
+    actualizarCosteTostadoModal();
+}
+
+function cerrarModalTostado() {
+    const modal = document.getElementById('modalTostado');
+    if (modal) modal.classList.remove('mostrar');
+    granoSeleccionadoTostadora = null;
+}
+
+function actualizarCosteTostadoModal() {
+    if (!granoSeleccionadoTostadora) return;
+    const jugador = jugadores[0];
+    const metodoSeleccionado = document.querySelector('input[name="metodo-tostado"]:checked');
+    const metodo = metodoSeleccionado ? metodoSeleccionado.value : 'TOSTADO_ARTESANAL';
+    const proceso = procesos[metodo];
+    const stockVerde = jugador.inventario[`verde_${granoSeleccionadoTostadora}`] || 0;
+    const inputCantidad = document.getElementById('modal-tostado-cantidad');
+    const maxPermitido = metodo === 'TOSTADO_INDUSTRIAL'
+        ? Math.min(stockVerde, proceso.capacidadMaxima)
+        : stockVerde;
+    inputCantidad.max = Math.max(1, maxPermitido);
+    if (parseInt(inputCantidad.value, 10) > maxPermitido) {
+        inputCantidad.value = maxPermitido;
+    }
+    if (!inputCantidad.value || parseInt(inputCantidad.value, 10) < 1) {
+        inputCantidad.value = Math.min(1, Math.max(1, maxPermitido));
+    }
+    const cantidad = Math.min(maxPermitido, parseInt(inputCantidad.value, 10) || 0);
+    const coste = cantidad * proceso.costeProcesado;
+    const rendimiento = proceso.rendimiento ?? 1;
+    const produccion = cantidad ? Math.max(1, Math.round(cantidad * rendimiento)) : 0;
+    document.getElementById('modal-tostado-coste').textContent = `${coste.toFixed(2)}€`;
+    document.getElementById('modal-tostado-produccion').textContent = cantidad
+        ? `${produccion} sacos (${metodo === 'TOSTADO_ARTESANAL' ? 'premium' : 'comerciales'})`
+        : '--';
+}
+
+async function confirmarTostado() {
+    if (!granoSeleccionadoTostadora) return;
+    const cantidad = parseInt(document.getElementById('modal-tostado-cantidad').value, 10);
+    const metodoSeleccionado = document.querySelector('input[name="metodo-tostado"]:checked');
+    const metodo = metodoSeleccionado ? metodoSeleccionado.value : null;
+    if (!metodo || !cantidad) return;
+    const exito = await procesarCafe(granoSeleccionadoTostadora, metodo, cantidad);
+    if (exito) {
+        cerrarModalTostado();
+    }
+}
+
+(function configurarModalTostadoListeners() {
+    const inputCantidad = document.getElementById('modal-tostado-cantidad');
+    if (inputCantidad) {
+        inputCantidad.addEventListener('input', actualizarCosteTostadoModal);
+    }
+    document.querySelectorAll('input[name="metodo-tostado"]').forEach(radio => {
+        radio.addEventListener('change', actualizarCosteTostadoModal);
+    });
+})();
+
+window.comprarTostadora = comprarTostadora;
+window.abrirTostadora = abrirTostadora;
+window.cerrarModalTostado = cerrarModalTostado;
+window.confirmarTostado = confirmarTostado;
+
+// ===================================
+// F. ANIMACIÓN DE DINERO
+// ===================================
+
+function animarCambioDinero(valorInicial, valorFinal, duracion = 2000) {
+    const dineroEl = document.getElementById('dinero');
+    if (!dineroEl) return;
+    if (dineroEl._animFrame) {
+        cancelAnimationFrame(dineroEl._animFrame);
+        dineroEl._animFrame = null;
+    }
+    const inicio = performance.now();
+    dineroEl.classList.add('dinero-animando');
+
+    const actualizarValor = (ahora) => {
+        const progreso = Math.min((ahora - inicio) / duracion, 1);
+        const valor = valorInicial + (valorFinal - valorInicial) * progreso;
+        dineroEl.textContent = valor.toFixed(2);
+        if (progreso < 1) {
+            dineroEl._animFrame = requestAnimationFrame(actualizarValor);
+        } else {
+            dineroEl.textContent = valorFinal.toFixed(2);
+            dineroEl.classList.remove('dinero-animando');
+            dineroEl._animFrame = null;
+        }
+    };
+
+    dineroEl._animFrame = requestAnimationFrame(actualizarValor);
+}
+
+window.animarCambioDinero = animarCambioDinero;
 
 // Iniciar la UI al cargar la página
 window.onload = iniciarJuego;

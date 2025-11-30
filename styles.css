@@ -206,11 +206,79 @@ h1 {
     color: #2c3e50; /* Asegurar que los números sean oscuros */
 }
 
+.dinero-animando {
+    animation: dineroFlash 2s ease-in-out;
+}
+
+@keyframes dineroFlash {
+    0% {
+        color: #2c3e50;
+        text-shadow: none;
+    }
+    30% {
+        color: #27ae60;
+        text-shadow: 0 0 10px rgba(39, 174, 96, 0.5);
+    }
+    60% {
+        color: #27ae60;
+        text-shadow: 0 0 5px rgba(39, 174, 96, 0.4);
+    }
+    100% {
+        color: #2c3e50;
+        text-shadow: none;
+    }
+}
+
 #jugador-panel h2 {
     margin-top: 0;
     color: #2c3e50;
     border-bottom: 3px solid #3498db;
     padding-bottom: 10px;
+}
+
+.tostadoras-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+    margin: 12px 0;
+}
+
+.tostadora-card {
+    background: #ffffff;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.tostadora-card h4 {
+    margin: 0 0 6px;
+    color: #2c3e50;
+}
+
+.tostadora-estado {
+    margin: 0 0 10px;
+    font-size: 0.9em;
+    color: #7f8c8d;
+}
+
+.tostadora-estado.tostadora-disponible {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.tostadora-botones {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-comprar {
+    background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+}
+
+.btn-tostadora {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 #jugador-panel h3 {
@@ -574,6 +642,80 @@ h1 {
         opacity: 0;
         transform: scale(0.96);
     }
+}
+
+#modalTostado {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px);
+    z-index: 150;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+#modalTostado.mostrar {
+    display: flex;
+}
+
+.modal-tostado-contenido {
+    background-color: #fff;
+    width: 420px;
+    max-width: 90vw;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    animation: slideDown 0.25s ease-out;
+}
+
+.modal-tostado-contenido h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 12px;
+}
+
+.modal-tostado-metodos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #f3f6fb;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #dde3f0;
+    margin-bottom: 15px;
+}
+
+.modal-tostado-metodos label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.modal-tostado-detalle {
+    font-weight: normal;
+    font-size: 0.85em;
+    color: #7f8c8d;
+}
+
+#modalTostado input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1em;
+    margin-bottom: 10px;
+}
+
+.modal-tostado-botones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
 }
 
 /* ================================

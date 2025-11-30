@@ -26,13 +26,17 @@ let jugadores = [{
         tostado_artesanal_B: 0,
         tostado_artesanal_E: 0,
         tostado_industrial_A: 0,
-        tostado_industrial_B: 0
+        tostado_industrial_B: 0,
+        tostado_industrial_E: 0
         // ... (Se añadirán más niveles/tipos)
     },
     parcelas: [], // Aquí se almacenan los objetos de cultivo
     activos: {
-        tostadora_artesanal: false,
-        produccion_industrial: false,
+        tostadoras: {
+            A: false,
+            B: false,
+            E: false
+        },
         cafeterias_propias: 0
     }
 }];
@@ -66,6 +70,12 @@ const variedades = {
     }
 };
 
+const costeTostadoras = {
+    A: 2200,
+    B: 2800,
+    E: 3600
+};
+
 // Definición de los procesos de transformación
 const procesos = {
     TOSTADO_ARTESANAL: { 
@@ -74,7 +84,8 @@ const procesos = {
         costeProcesado: 50,    // Coste por saco procesado
         tiempoProcesado: 1, 
         multiplicadorPrecio: 3.0,  // x3 el precio base
-        paRequeridos: 1
+        paRequeridos: 1,
+        rendimiento: 0.8
     },
     TOSTADO_INDUSTRIAL: { 
         nombre: "Tostado Industrial", 
@@ -83,7 +94,9 @@ const procesos = {
         tiempoProcesado: 1, 
         multiplicadorPrecio: 2.0,  // x2 el precio base
         capacidadMaxima: 10,  // Puede procesar hasta 10 sacos a la vez
-        paRequeridos: 1
+        paRequeridos: 1,
+        rendimiento: 1.25
     }
 };
 //    CERTIFICADO: { nombre: "Certificado (Extra)", costeInversion: 2000, tiempoProcesado: 1, multiplicadorPrecio: 1.2 }
+
