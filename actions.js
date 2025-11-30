@@ -1,4 +1,4 @@
-// actions.js
+﻿// actions.js
 // Función para actualizar el DOM (la interfaz HTML)
 function actualizarIU() {
     const jugador = jugadores[0]; // Usamos solo el primer jugador
@@ -172,22 +172,20 @@ async function pasarTurno() {
     // Avanzar cultivos (los contratos solo cambian al final de la ronda)
     avanzarCultivos(jugador);
     
-    addLog(`⏱️ Turno pasado. PA restantes: ${jugador.paRestantes}`, 'accion');
+    addLog(`Turno pasado. PA restantes: ${jugador.paRestantes}`, 'accion');
     actualizarIU();
 }
 
-// Asegurar que la función esté disponible globalmente
 window.pasarTurno = pasarTurno;
 
 async function iniciarRonda() {
     const jugador = jugadores[0];
-    
-    // Si la partida no ha comenzado, inicializar
+
     if (!gameState.partidaIniciada) {
         gameState.partidaIniciada = true;
         gameState.rondaActual = 1;
         jugador.paRestantes = 3;
-        generarContratos(); // Generar 6 contratos iniciales
+        generarContratos();
 
         const btnIniciar = document.getElementById('btn-iniciar-ronda');
         if (btnIniciar) btnIniciar.textContent = 'NUEVA RONDA';
@@ -196,27 +194,22 @@ async function iniciarRonda() {
         actualizarIU();
         return;
     }
-    
+
     if (jugador.paRestantes > 0) {
-        const confirmar = await mostrarConfirmacion(
-            `Aún te quedan ${jugador.paRestantes} PA sin gastar. ¿Seguro que quieres pasar a la siguiente ronda?`
-        );
+        const confirmar = await mostrarConfirmacion(`Aún te quedan ${jugador.paRestantes} PA sin gastar. ¿Seguro que quieres pasar a la siguiente ronda?`);
         if (!confirmar) return;
     }
 
     gameState.rondaActual++;
     jugador.paRestantes = 3;
-    
+
     pagarMantenimiento(jugador);
     avanzarCultivos(jugador);
     addLog(`--- RONDA ${gameState.rondaActual} INICIADA. Recibes 3 PA. ---`, 'ronda');
     actualizarIU();
-    
-    await avanzarContratos();  // Reducir rondas y eliminar expirados (solo una vez por ronda) y reponer
-}
 
-// Las funciones avanzarCultivos y pagarMantenimiento no necesitan cambios en su contenido.
-// Su lógica ya es correcta para lo que hacen, solo fallaba el orden de llamada.
+    await avanzarContratos();
+}
 
 // ===================================
 // B. LÓGICA DE MANTENIMIENTO
@@ -228,36 +221,30 @@ function avanzarCultivos(jugador) {
         if (parcela.rondasRestantes > 0) {
             parcela.rondasRestantes--;
             if (parcela.rondasRestantes === 0) {
-                // Verificar si es procesamiento o cultivo
                 if (parcela.esProcesamiento) {
-                    // Procesamiento completado
-                    // Convertir "TOSTADO_ARTESANAL_A" a "tostado_artesanal_A"
                     const partes = parcela.tipo.split('_');
                     const inventarioKey = partes.slice(0, -1).join('_').toLowerCase() + '_' + partes[partes.length - 1];
                     if (!jugador.inventario[inventarioKey]) {
                         jugador.inventario[inventarioKey] = 0;
                     }
                     jugador.inventario[inventarioKey] += parcela.produccionSacos;
-                    // Obtener nombre legible para el log
                     const tipoProceso = partes.slice(0, -1).join('_').toLowerCase();
                     const tipoGrano = partes[partes.length - 1];
                     const nombreVariedad = variedades[tipoGrano].nombre;
-                    const nombreProceso = tipoProceso === 'tostado_artesanal' ? 'Cafe Premium' : 'Cafe Comercial';
-                    addLog(Procesamiento completado: + sacos de  , 'ganancia', '??');
+                    const nombreProceso = tipoProceso === 'tostado_artesanal' ? 'Café Premium' : 'Café Comercial';
+                    addLog(`Procesamiento completado: +${parcela.produccionSacos} sacos de ${nombreVariedad} ${nombreProceso}`, 'ganancia');
                 } else {
-                    // Cosecha lista!
                     jugador.inventario[`verde_${parcela.tipo}`] += parcela.produccionSacos;
                     const nombreVariedad = variedades[parcela.tipo].nombre;
-                    addLog(�Cosecha lista! : + sacos., 'cosecha');
-                    console.log(`¡COSECHA LISTA! ${nombreVariedad}: +${parcela.produccionSacos} sacos.`);
+                    addLog(`Cosecha lista: ${nombreVariedad} +${parcela.produccionSacos} sacos.`, 'cosecha');
+                    console.log(`COSECHA LISTA! ${nombreVariedad}: +${parcela.produccionSacos} sacos.`);
                 }
             } else {
                 nuevasParcelas.push(parcela);
             }
         }
     });
-    // Solo quedan las parcelas que siguen en crecimiento
-    jugador.parcelas = nuevasParcelas; 
+    jugador.parcelas = nuevasParcelas;
 }
 
 function pagarMantenimiento(jugador) {
@@ -267,22 +254,17 @@ function pagarMantenimiento(jugador) {
             costeTotal += jugador.inventario[tipo] * gameState.costeAlmacenamiento;
         }
     }
-    
-    // Advertir si no tiene suficiente dinero
+
     if (jugador.dinero < costeTotal) {
-        addLog(`⚠️ ADVERTENCIA: Deuda de ${(costeTotal - jugador.dinero).toFixed(2)}€ en almacenamiento`, 'gasto');
+        addLog(`ADVERTENCIA: Deuda de ${(costeTotal - jugador.dinero).toFixed(2)} EUR en almacenamiento`, 'alerta');
     }
-    
+
     jugador.dinero -= costeTotal;
-    
+
     if (costeTotal > 0) {
-        addLog(`Costo de Almacenamiento pagado: ${costeTotal.toFixed(2)}€`, 'gasto');
+        addLog(`Costo de almacenamiento pagado: ${costeTotal.toFixed(2)} EUR`, 'gasto');
     }
 }
-
-// ===================================
-// C. ACCIONES DEL JUGADOR (GASTAN PA)
-// ===================================
 
 async function plantar(tipoGrano) {
     const jugador = jugadores[0];
@@ -297,11 +279,9 @@ async function plantar(tipoGrano) {
         return;
     }
 
-    // 1. Ejecutar acción
     jugador.paRestantes--;
     jugador.dinero -= variedad.costePlantacion;
 
-    // 2. Crear la parcela y añadirla al array
     const nuevaParcela = {
         tipo: tipoGrano,
         rondasRestantes: variedad.tiempoCrecimiento,
@@ -309,8 +289,8 @@ async function plantar(tipoGrano) {
     };
     jugador.parcelas.push(nuevaParcela);
 
-    console.log(`Plantado ${variedad.nombre}. Coste: ${variedad.costePlantacion}€.`);
-    addLog(`Plantado ${variedad.nombre}. Coste: ${variedad.costePlantacion}€.`, 'gasto');
+    console.log(`Plantado ${variedad.nombre}. Coste: ${variedad.costePlantacion} €. `);
+    addLog(`Plantado ${variedad.nombre}. Coste: ${variedad.costePlantacion} €.`, 'gasto');
     actualizarIU();
 }
 
@@ -318,7 +298,7 @@ async function venderMercadoLocal(tipoGrano) {
     const jugador = jugadores[0];
     const inventarioKey = `verde_${tipoGrano}`;
     const precioUnitario = variedades[tipoGrano].precioVentaEmergencia;
-    const cantidadVender = jugador.inventario[inventarioKey]; // Vender todo el stock
+    const cantidadVender = jugador.inventario[inventarioKey];
 
     if (jugador.paRestantes < 1) {
         await mostrarAlerta("¡No tienes Puntos de Acción (PA) suficientes para vender!", 'advertencia');
@@ -329,17 +309,15 @@ async function venderMercadoLocal(tipoGrano) {
         return;
     }
     
-    // 1. Ejecutar acción
     jugador.paRestantes--;
 
-    // 2. Cálculo
     const ganancia = cantidadVender * precioUnitario;
     jugador.dinero += ganancia;
-    jugador.inventario[inventarioKey] = 0; // Vaciar inventario vendido
+    jugador.inventario[inventarioKey] = 0;
 
     const nombreVariedad = variedades[tipoGrano].nombre;
-    console.log(`Vendido ${cantidadVender} sacos de ${nombreVariedad}. Ganancia: ${ganancia}€.`);
-    addLog(`Vendido ${cantidadVender} sacos de ${nombreVariedad}. Ganancia: ${ganancia}€.`, 'ganancia');
+    console.log(`Vendido ${cantidadVender} sacos de ${nombreVariedad}. Ganancia: ${ganancia} €. `);
+    addLog(`Vendido ${cantidadVender} sacos de ${nombreVariedad}. Ganancia: ${ganancia} €.`, 'ganancia');
     actualizarIU();
 }
 
@@ -349,38 +327,11 @@ function addLog(mensaje, tipo = 'accion', iconoPersonalizado = null) {
 
     const item = document.createElement('p');
     item.classList.add('log-item');
-    
-    const colores = {
-        ronda: '#0056b3',
-        ganancia: '#28a745',
-        gasto: '#dc3545',
-        plantar: '#dc3545',
-        contrato: '#1abc9c',
-        cosecha: '#16a085',
-        alerta: '#e67e22'
-    };
+    item.style.color = '';
 
-    const iconos = {
-        ronda: '🌀',
-        ganancia: '💰',
-        gasto: '💸',
-        plantar: '🪴',
-        accion: '⚙️',
-        contrato: '📜',
-        cosecha: '🌾',
-        alerta: '⚠️',
-        procesamiento: '🔥'
-    };
-
-    item.style.color = colores[tipo] || '';
-    const icono = iconoPersonalizado || iconos[tipo] || '📝';
-    item.innerHTML = `<span class="log-icon">${icono}</span><span>[R${gameState.rondaActual}] ${mensaje}</span>`;
-    logContainer.prepend(item); 
+    item.innerHTML = `<span class="log-icon">${iconoPersonalizado || ''}</span><span>[R${gameState.rondaActual}] ${mensaje}</span>`;
+    logContainer.prepend(item);
 }
-
-// ===================================
-// D. MODAL DE VENTA PARCIAL
-// ===================================
 
 let tipoVentaActual = null;
 
@@ -396,12 +347,10 @@ async function abrirModalVenta(tipoGrano) {
         return;
     }
 
-    // Mostrar modal
     document.getElementById('modalVenta').classList.add('mostrar');
     document.getElementById('modal-tipo-grano').textContent = variedades[tipoGrano].nombre;
     document.getElementById('modal-stock').textContent = stock;
 
-    // Rellenar desplegable de 1 hasta stock
     const select = document.getElementById('cantidadVenta');
     select.innerHTML = '';
     for (let i = 1; i <= stock; i++) {
@@ -411,14 +360,12 @@ async function abrirModalVenta(tipoGrano) {
         select.appendChild(opt);
     }
 
-    // Calcular ganancia estimada inicial
-    document.getElementById('modal-ganancia-estimada').textContent = (1 * precioUnitario).toFixed(2) + '€';
+    document.getElementById('modal-ganancia-estimada').textContent = (1 * precioUnitario).toFixed(2) + ' €';
 
-    // Actualizar ganancia al cambiar selección
     select.onchange = () => {
         const cantidad = parseInt(select.value);
         const ganancia = cantidad * precioUnitario;
-        document.getElementById('modal-ganancia-estimada').textContent = ganancia.toFixed(2) + '€';
+        document.getElementById('modal-ganancia-estimada').textContent = ganancia.toFixed(2) + ' €';
     };
 }
 
@@ -443,19 +390,17 @@ async function ejecutarVenta() {
         return;
     }
 
-    // Calcular ganancia
     const ganancia = cantidad * precioUnitario;
     jugador.inventario[inventarioKey] -= cantidad;
     jugador.dinero += ganancia;
     jugador.paRestantes--;
 
     const nombreVariedad = variedades[tipoVentaActual].nombre;
-    addLog(`Vendido ${cantidad} sacos de ${nombreVariedad}. Ganancia: ${ganancia}€.`, 'ganancia');
+    addLog(`Vendido ${cantidad} sacos de ${nombreVariedad}. Ganancia: ${ganancia} €.`, 'ganancia');
 
     cerrarModalVenta();
     actualizarIU();
 }
-
 
 // ===================================
 // E. TOSTADORAS Y PROCESAMIENTO
@@ -475,7 +420,7 @@ async function comprarTostadora(tipoGrano) {
     }
     const coste = costeTostadoras[tipoGrano];
     const confirmar = await mostrarConfirmacion(
-        `Comprar Tostadora de ${variedades[tipoGrano].nombre} por ${coste}€?`,
+        `Comprar Tostadora de ${variedades[tipoGrano].nombre} por ${coste} €?`,
         'Comprar Tostadora'
     );
     if (!confirmar) return;
@@ -485,7 +430,7 @@ async function comprarTostadora(tipoGrano) {
     }
     jugador.dinero -= coste;
     estado[tipoGrano] = true;
-    addLog(`Tostadora comprada: ${variedades[tipoGrano].nombre} (${coste}€)`, 'gasto');
+    addLog(`Tostadora comprada: ${variedades[tipoGrano].nombre} (${coste} €)`, 'gasto');
     actualizarIU();
 }
 
@@ -543,7 +488,7 @@ function actualizarCosteTostadoModal() {
     const coste = cantidad * proceso.costeProcesado;
     const rendimiento = proceso.rendimiento ?? 1;
     const produccion = cantidad ? Math.max(1, Math.round(cantidad * rendimiento)) : 0;
-    document.getElementById('modal-tostado-coste').textContent = `${coste.toFixed(2)}€`;
+    document.getElementById('modal-tostado-coste').textContent = `${coste.toFixed(2)} €`;
     document.getElementById('modal-tostado-produccion').textContent = cantidad
         ? `${produccion} sacos (${metodo === 'TOSTADO_ARTESANAL' ? 'premium' : 'comerciales'})`
         : '--';
