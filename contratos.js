@@ -1,4 +1,4 @@
-﻿// contratos.js - Sistema de Contratos (CORREGIDO)
+﻿// contratos.js - Sistema de Contratos (CORREGIDO v2)
 
 const plantillasContratos = {
   pequenos: [
@@ -33,9 +33,12 @@ function crearContrato(categoria) {
   const grano = plantilla.granos[Math.floor(Math.random() * plantilla.granos.length)];
   const nombre = plantilla.nombres[Math.floor(Math.random() * plantilla.nombres.length)];
   const pago = calcularPago(plantilla.cantidad, plantilla.tipo, grano);
+  
+  // Duración INICIAL del contrato (cuántas rondas desde que aparece)
   const rondasIniciales = categoria === 'medianos' ? 3 + Math.floor(Math.random() * 2)
                         : categoria === 'grandes' ? 4 + Math.floor(Math.random() * 2)
                         : 2 + Math.floor(Math.random() * 2);
+  
   return {
     id: `contrato_${++contadorContratos}`,
     categoria,
@@ -47,7 +50,7 @@ function crearContrato(categoria) {
     prestigio: plantilla.cantidad <= 2 ? 1 : (categoria === 'grandes' ? 3 + Math.floor(plantilla.cantidad / 4) : 2 + Math.floor(plantilla.cantidad / 3)),
     descripcion: `Contrato de ${plantilla.cantidad} saco${plantilla.cantidad > 1 ? 's' : ''} de ${obtenerNombreTipoCafe(plantilla.tipo, grano)}`,
     rondasIniciales,
-    rondasRestantes: rondasIniciales
+    rondasRestantes: rondasIniciales  // Empieza con el mismo valor
   };
 }
 
@@ -69,45 +72,49 @@ let contratosDisponibles = [];
 let contratosCompletados = [];
 
 // ===================================
-// FUNCIÓN CORREGIDA: Generar contratos para llenar huecos
+// GENERAR CONTRATOS PARA LLENAR HUECOS
 // ===================================
 function generarContratos() {
-  // Contar cuántos contratos hay de cada categoría
   const conteo = { pequenos: 0, medianos: 0, grandes: 0 };
+  
+  // Contar cuántos hay actualmente de cada categoría
   contratosDisponibles.forEach((c) => {
     if (conteo[c.categoria] !== undefined) conteo[c.categoria]++;
   });
 
-  console.log("📊 Conteo actual de contratos:", conteo);
-  console.log("🎯 Objetivo de contratos:", objetivosContratos);
+  console.log("📊 Estado actual de contratos:", conteo);
+  console.log("🎯 Objetivo:", objetivosContratos);
 
-  // Rellenar cada categoría hasta el objetivo
+  // Generar los que faltan para cada categoría
   Object.keys(objetivosContratos).forEach((cat) => {
     const faltantes = objetivosContratos[cat] - conteo[cat];
-    console.log(`📝 Categoría ${cat}: faltan ${faltantes} contratos`);
     
-    for (let i = 0; i < faltantes; i++) {
-      const nuevoContrato = crearContrato(cat);
-      contratosDisponibles.push(nuevoContrato);
-      console.log(`✅ Creado contrato ${cat}: ${nuevoContrato.nombre}`);
+    if (faltantes > 0) {
+      console.log(`📝 Generando ${faltantes} contratos de categoría ${cat}`);
+      
+      for (let i = 0; i < faltantes; i++) {
+        const nuevoContrato = crearContrato(cat);
+        contratosDisponibles.push(nuevoContrato);
+        console.log(`✅ Creado: ${nuevoContrato.nombre} (${nuevoContrato.rondasRestantes} rondas)`);
+      }
     }
   });
 
-  console.log(`📦 Total de contratos disponibles: ${contratosDisponibles.length}`);
-  actualizarUIContratos();
+  console.log(`📦 Total contratos disponibles: ${contratosDisponibles.length}/${TOTAL_CONTRATOS_OBJETIVO}`);
 }
 
 // ===================================
-// ASEGURAR CONTRATOS COMPLETOS (para inicio de juego)
+// ASEGURAR CONTRATOS AL INICIO
 // ===================================
 async function asegurarContratosCompletos() {
-  console.log("🔄 Verificando contratos al inicio...");
+  console.log("🔄 Verificando contratos iniciales...");
+  
   if (contratosDisponibles.length < TOTAL_CONTRATOS_OBJETIVO) {
-    console.log("⚠️ Faltan contratos, generando...");
+    console.log(`⚠️ Solo hay ${contratosDisponibles.length} contratos, generando hasta ${TOTAL_CONTRATOS_OBJETIVO}`);
     generarContratos();
-  } else {
-    console.log("✅ Contratos ya completos:", contratosDisponibles.length);
   }
+  
+  actualizarUIContratos();
 }
 
 window.asegurarContratosCompletos = asegurarContratosCompletos;
@@ -143,7 +150,7 @@ async function intentarCumplirContrato(contratoId) {
     return;
   }
   
-  // ¡CUMPLIR CONTRATO!
+  // CUMPLIR CONTRATO
   jugador.paRestantes--;
   jugador.inventario[inventarioKey] -= contrato.cantidadRequerida;
   jugador.dinero += contrato.pago;
@@ -155,19 +162,37 @@ async function intentarCumplirContrato(contratoId) {
   );
   
   contratosCompletados.push(contrato);
+
+  actualizarIU();
   
-  // Eliminar de disponibles
-  contratosDisponibles = contratosDisponibles.filter((c) => c.id !== contratoId);
-  
-  console.log(`📝 Contrato cumplido. Quedan ${contratosDisponibles.length} contratos`);
-  
-  const animado = aplicarAnimacionSalidaContrato(contratoId);
-  if (animado) {
-    await esperar(DURACION_ANIMACION_CONTRATO);
+  // Eliminar del array
+  const index = contratosDisponibles.findIndex(c => c.id === contratoId);
+  if (index >= 0) {
+    contratosDisponibles.splice(index, 1);
+    console.log(`✅ Contrato cumplido y eliminado. Quedan ${contratosDisponibles.length} contratos`);
   }
   
+  // 1️⃣ Primero actualizar UI (desbloquea botones)
   actualizarIU();
-  actualizarUIContratos();
+  
+  // 2️⃣ Aplicar animación a la tarjeta que ya existe
+  const card = document.querySelector(`[data-contrato-id="${contratoId}"]`);
+  if (card) {
+    card.classList.add('contrato-desapareciendo');
+    const boton = card.querySelector('button');
+    if (boton) boton.setAttribute('disabled', 'disabled');
+    
+    // 3️⃣ DESPUÉS de la animación, actualizar contratos (sin bloquear)
+    card.addEventListener("animationend", () => {
+        card.remove();
+    });
+    setTimeout(() => {
+      actualizarUIContratos();
+    }, 2400); // Un poco más que la duración de la animación
+  } else {
+    // Si no hay tarjeta, actualizar inmediatamente
+    actualizarUIContratos();
+  }
 }
 
 // ===================================
@@ -233,7 +258,6 @@ async function procesarCafe(tipoGrano, tipoProceso, cantidadForzada = null) {
     return false;
   }
   
-  // PROCESAR
   jugador.paRestantes--;
   jugador.dinero -= costeTotal;
   jugador.inventario[inventarioVerdeKey] -= cantidad;
@@ -276,6 +300,12 @@ async function procesarCafe(tipoGrano, tipoProceso, cantidadForzada = null) {
 // ACTUALIZACIÓN DE UI DE CONTRATOS
 // ===================================
 function actualizarUIContratos() {
+  const contenedor = document.getElementById('contratos-listado');
+  if (!contenedor) {
+    console.warn("⚠️ No se encontró el elemento contratos-listado");
+    return;
+  }
+  
   let html = '<h3>📋 Contratos Disponibles</h3>';
   
   const huecosPendientes = Math.max(0, TOTAL_CONTRATOS_OBJETIVO - contratosDisponibles.length);
@@ -298,9 +328,13 @@ function actualizarUIContratos() {
       const nombreCafe = obtenerNombreTipoCafe(contrato.tipo, contrato.grano);
       const colorTipo = contrato.tipo === 'verde' ? '#ffc107' : '#8B4513';
       
-      const expiraTexto = contrato.rondasRestantes === 1
-        ? `⏰ Duración del contrato: ${contrato.rondasIniciales} rondas. <strong style="color: #e74c3c;">Expira esta ronda</strong>.`
-        : `⏰ Duración del contrato: ${contrato.rondasIniciales} rondas. Expira en ${contrato.rondasRestantes} rondas.`;
+      // Lógica corregida del texto de expiración
+      let expiraTexto = '';
+      if (contrato.rondasRestantes === 1) {
+        expiraTexto = `⏰ Duración del contrato: ${contrato.rondasIniciales} rondas. <strong style="color: #e74c3c;">Expira esta ronda</strong>.`;
+      } else {
+        expiraTexto = `⏰ Duración del contrato: ${contrato.rondasIniciales} rondas. Expira en ${contrato.rondasRestantes} rondas.`;
+      }
       
       html += `
         <div class="contrato-card" data-contrato-id="${contrato.id}" style="border-left: 4px solid ${colorTipo};">
@@ -318,7 +352,7 @@ function actualizarUIContratos() {
     });
   }
 
-  // Mostrar placeholders para contratos que se repondrán
+  // Placeholders para contratos que se repondrán
   for (let i = 0; i < huecosPendientes; i++) {
     html += `
       <div class="contrato-card contrato-placeholder">
@@ -328,7 +362,7 @@ function actualizarUIContratos() {
     `;
   }
   
-  document.getElementById('contratos-listado').innerHTML = html;
+  contenedor.innerHTML = html;
 }
 
 function aplicarAnimacionSalidaContrato(contratoId) {
@@ -350,27 +384,27 @@ function obtenerNombreTipoCafe(tipo, grano) {
 }
 
 // ===================================
-// FUNCIÓN CORREGIDA: Avanzar contratos
+// AVANZAR CONTRATOS (se llama al inicio de cada ronda)
 // ===================================
 async function avanzarContratos() {
-  console.log("🔄 Avanzando contratos...");
-  console.log(`📦 Contratos disponibles al inicio: ${contratosDisponibles.length}`);
+  console.log("\n🔄 ========== AVANZAR CONTRATOS ==========");
+  console.log(`📦 Contratos al inicio: ${contratosDisponibles.length}`);
   
   const contratosExpirados = [];
   
-  // Reducir rondas restantes y marcar expirados
+  // Reducir contador de rondas restantes
   contratosDisponibles.forEach((contrato) => {
     contrato.rondasRestantes--;
-    console.log(`⏳ Contrato "${contrato.nombre}": ${contrato.rondasRestantes} rondas restantes`);
+    console.log(`⏳ "${contrato.nombre}": ${contrato.rondasRestantes} rondas restantes`);
     
     if (contrato.rondasRestantes <= 0) {
       contratosExpirados.push(contrato);
     }
   });
 
-  // Eliminar contratos expirados
+  // Eliminar los que llegaron a 0
   if (contratosExpirados.length > 0) {
-    console.log(`❌ Expirando ${contratosExpirados.length} contratos`);
+    console.log(`❌ Expirando ${contratosExpirados.length} contrato(s)`);
     
     contratosDisponibles = contratosDisponibles.filter(
       (c) => c.rondasRestantes > 0
@@ -380,17 +414,18 @@ async function avanzarContratos() {
     addLog(`❌ Contratos expirados: ${nombresExpirados}`, 'alerta');
   }
 
-  console.log(`📦 Contratos disponibles después de expirar: ${contratosDisponibles.length}`);
+  console.log(`📦 Contratos después de expirar: ${contratosDisponibles.length}`);
   
-  // AQUÍ ESTÁ LA CLAVE: Generar nuevos contratos para reponer los expirados
+  // REPONER contratos hasta llegar al objetivo
   generarContratos();
   
-  console.log(`📦 Contratos disponibles después de generar: ${contratosDisponibles.length}`);
+  console.log(`📦 Contratos después de generar: ${contratosDisponibles.length}`);
+  console.log("========================================\n");
   
   actualizarUIContratos();
 }
 
-// Exportar funciones necesarias
+// Exportar funciones
 window.intentarCumplirContrato = intentarCumplirContrato;
 window.avanzarContratos = avanzarContratos;
 window.generarContratos = generarContratos;

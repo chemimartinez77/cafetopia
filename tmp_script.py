@@ -1,8 +1,0 @@
-from pathlib import Path
-path = Path('index.html')
-text = path.read_text(encoding='utf-8')
-old = "        <div id=\"modalVenta\">\r\n            <div>\r\n                <h3>Vender Grano Verde (<span id=\"modal-tipo-grano\"></span>)</h3>\r\n\r\n                <p>Inventario disponible: <span id=\"modal-stock\"></span> sacos</p>\r\n\r\n                <label for=\"cantidadVenta\">Cantidad:</label>\r\n                <select id=\"cantidadVenta\" name=\"cantidadVenta\"></select>\r\n\r\n                <p>Ganancia Estimada: <span id=\"modal-ganancia-estimada\">0.00?'?</span></p>\r\n\r\n                <button onclick=\"ejecutarVenta()\">Confirmar Venta (1 PA)</button>\r\n                <button onclick=\"cerrarModalVenta()\">Cancelar</button>\r\n            </div>\r\n        </div>\r\n\r\n        <!-- Modal de Alerta/Confirmaci??n Personalizado -->\r\n        <div id=\"modalAlerta\">\r\n            <div class=\"modal-alerta-contenido\">\r\n                <div class=\"modal-alerta-icono\" id=\"modal-alerta-icono\">?s????</div>\r\n                <h3 id=\"modal-alerta-titulo\">Alerta</h3>\r\n                <p id=\"modal-alerta-mensaje\"></p>\r\n                <div class=\"modal-alerta-botones\">\r\n                    <button id=\"modal-alerta-aceptar\" class=\"btn-modal-aceptar\">Aceptar</button>\r\n                    <button id=\"modal-alerta-cancelar\" class=\"btn-modal-cancelar\" style=\"display: none;\">Cancelar</button>\r\n                </div>\r\n            </div>\r\n        </div>\r\n\r\n"
-if old not in text:
-    raise SystemExit('block not found')
-text = text.replace(old, '', 1)
-path.write_text(text, encoding='utf-8')

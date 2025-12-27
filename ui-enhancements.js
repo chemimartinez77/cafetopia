@@ -64,11 +64,20 @@
 (function enhanceContratoPlaceholders() {
     const aplicarMensaje = () => {
         const contenedores = document.querySelectorAll('#contratos-listado .contrato-placeholder');
+        const titulo = 'Contrato pendiente';
+        const detalle = 'Se repondrá al comenzar la siguiente ronda.';
+
         contenedores.forEach(card => {
             const strong = card.querySelector('strong');
             const small = card.querySelector('small');
-            if (strong) strong.textContent = 'Contrato pendiente';
-            if (small) small.textContent = 'Se repondrá al comenzar la siguiente ronda.';
+
+            if (strong && strong.textContent.trim() !== titulo) {
+                strong.textContent = titulo;
+            }
+
+            if (small && small.textContent.trim() !== detalle) {
+                small.textContent = detalle;
+            }
         });
     };
 

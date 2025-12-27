@@ -56,8 +56,10 @@ function mostrarAlerta(mensaje, tipo = 'info', titulo = null) {
         
         nuevoBtnAceptar.onclick = () => {
             modal.classList.remove('mostrar');
+            modal.style.display = "none";
             resolve(true);
         };
+
         
         // Mostrar modal
         modal.classList.add('mostrar');
@@ -66,6 +68,7 @@ function mostrarAlerta(mensaje, tipo = 'info', titulo = null) {
         modal.onclick = (e) => {
             if (e.target === modal) {
                 modal.classList.remove('mostrar');
+                modal.style.display = "none";
                 resolve(false);
             }
         };
