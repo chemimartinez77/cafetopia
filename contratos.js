@@ -62,9 +62,17 @@ function calcularPago(cantidad, tipo, grano) {
     const proceso = tipo === 'tostado_artesanal' ? procesos.TOSTADO_ARTESANAL : procesos.TOSTADO_INDUSTRIAL;
     costeBase += cantidad * proceso.costeProcesado;
   }
-  let multiplicador = 1.15;
-  if (cantidad >= 9) multiplicador = 1.30;
-  else if (cantidad >= 5) multiplicador = 1.25;
+  let multiplicador = 1.35;
+  if (cantidad >= 9) multiplicador = 1.65;
+  else if (cantidad >= 5) multiplicador = 1.50;
+
+  // Bonus por tipo de procesado (recompensa la complejidad)
+  if (tipo === 'tostado_artesanal') {
+    multiplicador += 0.25;  // +25% extra por artesanal
+  } else if (tipo === 'tostado_industrial') {
+    multiplicador += 0.15;  // +15% extra por industrial
+  }
+
   return Math.round(costeBase * multiplicador);
 }
 
@@ -123,7 +131,7 @@ window.asegurarContratosCompletos = asegurarContratosCompletos;
 // CUMPLIR CONTRATO
 // ===================================
 async function intentarCumplirContrato(contratoId) {
-  const jugador = jugadores[0];
+  const jugador = obtenerJugadorActual();
   const contrato = contratosDisponibles.find((c) => c.id === contratoId);
   
   if (!contrato) {
@@ -151,16 +159,15 @@ async function intentarCumplirContrato(contratoId) {
   }
   
   // CUMPLIR CONTRATO
-  jugador.paRestantes--;
   jugador.inventario[inventarioKey] -= contrato.cantidadRequerida;
   jugador.dinero += contrato.pago;
   jugador.puntosVictoria += contrato.prestigio;
-  
+
   addLog(
-    `✅ CONTRATO CUMPLIDO: "${contrato.nombre}" - Ganancia: ${contrato.pago}€ (+${contrato.prestigio} PV)`, 
+    `✅ CONTRATO CUMPLIDO: "${contrato.nombre}" - Ganancia: ${contrato.pago}€ (+${contrato.prestigio} PV)`,
     'ganancia'
   );
-  
+
   contratosCompletados.push(contrato);
 
   actualizarIU();
@@ -181,7 +188,7 @@ async function intentarCumplirContrato(contratoId) {
     card.classList.add('contrato-desapareciendo');
     const boton = card.querySelector('button');
     if (boton) boton.setAttribute('disabled', 'disabled');
-    
+
     // 3️⃣ DESPUÉS de la animación, actualizar contratos (sin bloquear)
     card.addEventListener("animationend", () => {
         card.remove();
@@ -193,13 +200,16 @@ async function intentarCumplirContrato(contratoId) {
     // Si no hay tarjeta, actualizar inmediatamente
     actualizarUIContratos();
   }
+
+  // Gastar PA y cambiar de turno automáticamente
+  gastarPAyCambiarTurno(jugador, 1);
 }
 
 // ===================================
 // PROCESAMIENTO DE CAFÉ
 // ===================================
 async function procesarCafe(tipoGrano, tipoProceso, cantidadForzada = null) {
-  const jugador = jugadores[0];
+  const jugador = obtenerJugadorActual();
   const proceso = procesos[tipoProceso];
   
   if (!proceso) {
@@ -258,41 +268,35 @@ async function procesarCafe(tipoGrano, tipoProceso, cantidadForzada = null) {
     return false;
   }
   
-  jugador.paRestantes--;
   jugador.dinero -= costeTotal;
   jugador.inventario[inventarioVerdeKey] -= cantidad;
-  
+
   const rendimiento = proceso.rendimiento ?? 1;
   const produccionSacos = Math.max(1, Math.round(cantidad * rendimiento));
-  
+
   const baseKey = tipoProceso === 'TOSTADO_ARTESANAL' ? 'tostado_artesanal' : 'tostado_industrial';
   const inventarioProcesadoKey = `${baseKey}_${tipoGrano}`;
-  
+
   if (!jugador.inventario[inventarioProcesadoKey]) {
     jugador.inventario[inventarioProcesadoKey] = 0;
   }
-  
+
   jugador.inventario[inventarioProcesadoKey] += produccionSacos;
-  
+
   const etiquetaProceso = tipoProceso === 'TOSTADO_ARTESANAL' ? 'Café Premium' : 'Café Comercial';
-  
+
   addLog(
-    `☕ Procesando ${cantidad} sacos de ${variedades[tipoGrano].nombre} (${proceso.nombre}) - Coste: ${costeTotal}€`, 
+    `☕ Procesando ${cantidad} sacos de ${variedades[tipoGrano].nombre} (${proceso.nombre}) - Coste: ${costeTotal}€`,
     'gasto'
   );
-  
+
   addLog(
-    `✅ Procesado completado: +${produccionSacos} sacos de ${variedades[tipoGrano].nombre} ${etiquetaProceso}`, 
+    `✅ Procesado completado: +${produccionSacos} sacos de ${variedades[tipoGrano].nombre} ${etiquetaProceso}`,
     'ganancia'
   );
-  
-  await mostrarAlerta(
-    `Se han tostado ${produccionSacos} sacos de ${variedades[tipoGrano].nombre} (${etiquetaProceso}).`, 
-    'exito', 
-    'Procesado completado'
-  );
-  
+
   actualizarIU();
+  gastarPAyCambiarTurno(jugador, 1);
   return true;
 }
 

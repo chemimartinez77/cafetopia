@@ -7,39 +7,68 @@ const gameState = {
     partidaIniciada: false,
     precioBaseMercado: 100, // Precio base inicial por saco (Nivel A)
     costeAlmacenamiento: 50, // Coste por saco no vendido/procesado
-    puntosVictoriaGanancia: 1 // 1 PV por cada unidad de beneficio (ej. 1000€)
+    puntosVictoriaGanancia: 1, // 1 PV por cada unidad de beneficio (ej. 1000€)
+    jugadorActual: 0, // Índice del jugador activo (0 o 1)
+    jugadorInicial: 0 // Jugador que inicia la ronda actual
 };
 
 // ===================================
 // 2. DATOS DE LOS JUGADORES
 // ===================================
-let jugadores = [{
-    nombre: "Jugador 1",
-    dinero: 5000,
-    puntosVictoria: 0,
-    paRestantes: 0,
-    inventario: {
-        verde_A: 0, // Grano Verde Nivel A (Robusta)
-        verde_B: 0, // Grano Verde Nivel B (Arábica)
-        verde_E: 0, // Grano Verde Nivel E (Geisha)
-        tostado_artesanal_A: 0,
-        tostado_artesanal_B: 0,
-        tostado_artesanal_E: 0,
-        tostado_industrial_A: 0,
-        tostado_industrial_B: 0,
-        tostado_industrial_E: 0
-        // ... (Se añadirán más niveles/tipos)
-    },
-    parcelas: [], // Aquí se almacenan los objetos de cultivo
-    activos: {
-        tostadoras: {
-            A: false,
-            B: false,
-            E: false
+let jugadores = [
+    {
+        nombre: "Jugador 1",
+        dinero: 5000,
+        puntosVictoria: 0,
+        paRestantes: 0,
+        inventario: {
+            verde_A: 0, // Grano Verde Nivel A (Robusta)
+            verde_B: 0, // Grano Verde Nivel B (Arábica)
+            verde_E: 0, // Grano Verde Nivel E (Geisha)
+            tostado_artesanal_A: 0,
+            tostado_artesanal_B: 0,
+            tostado_artesanal_E: 0,
+            tostado_industrial_A: 0,
+            tostado_industrial_B: 0,
+            tostado_industrial_E: 0
         },
-        cafeterias_propias: 0
+        parcelas: [],
+        activos: {
+            tostadoras: {
+                A: false,
+                B: false,
+                E: false
+            },
+            cafeterias_propias: 0
+        }
+    },
+    {
+        nombre: "Jugador 2",
+        dinero: 5000,
+        puntosVictoria: 0,
+        paRestantes: 0,
+        inventario: {
+            verde_A: 0,
+            verde_B: 0,
+            verde_E: 0,
+            tostado_artesanal_A: 0,
+            tostado_artesanal_B: 0,
+            tostado_artesanal_E: 0,
+            tostado_industrial_A: 0,
+            tostado_industrial_B: 0,
+            tostado_industrial_E: 0
+        },
+        parcelas: [],
+        activos: {
+            tostadoras: {
+                A: false,
+                B: false,
+                E: false
+            },
+            cafeterias_propias: 0
+        }
     }
-}];
+];
 
 // ===================================
 // 3. DATOS CONSTANTES (COSTE/TIEMPO)
@@ -71,21 +100,21 @@ const variedades = {
 };
 
 const costeTostadoras = {
-    A: 2200,
-    B: 2800,
-    E: 3600
+    A: 1500,
+    B: 2000,
+    E: 2500
 };
 
 // Definición de los procesos de transformación
 const procesos = {
-    TOSTADO_ARTESANAL: { 
-        nombre: "Tostado Artesanal", 
+    TOSTADO_ARTESANAL: {
+        nombre: "Tostado Artesanal",
         costeInversion: 2000,  // Comprar tostadora
-        costeProcesado: 50,    // Coste por saco procesado
-        tiempoProcesado: 1, 
+        costeProcesado: 35,    // Coste por saco procesado (antes 50)
+        tiempoProcesado: 1,
         multiplicadorPrecio: 3.0,  // x3 el precio base
         paRequeridos: 1,
-        rendimiento: 0.8
+        rendimiento: 0.9       // Antes 0.8
     },
     TOSTADO_INDUSTRIAL: { 
         nombre: "Tostado Industrial", 

@@ -1,7 +1,74 @@
 ﻿// actions.js
+
+// ===================================
+// FUNCIONES DE GESTIÓN DE TURNOS
+// ===================================
+
+// Obtener el jugador activo actual
+function obtenerJugadorActual() {
+    return jugadores[gameState.jugadorActual];
+}
+
+// Pasar al siguiente jugador
+function cambiarTurno() {
+    gameState.jugadorActual = (gameState.jugadorActual + 1) % jugadores.length;
+    addLog(`--- Turno de ${jugadores[gameState.jugadorActual].nombre} ---`, 'info');
+    actualizarIU();
+}
+
+// Gastar PA y cambiar automáticamente de turno
+function gastarPAyCambiarTurno(jugador, cantidad = 1) {
+    jugador.paRestantes -= cantidad;
+
+    // Si el jugador se quedó sin PA, verificar si todos terminaron
+    if (jugador.paRestantes === 0) {
+        addLog(`${jugador.nombre} ha gastado todos sus PA.`, 'info');
+
+        if (todosJugadoresHanTerminado()) {
+            addLog("Todos los jugadores han terminado sus PA. Inicia una nueva ronda.", 'alerta');
+            actualizarIU();
+        } else {
+            // Cambiar al siguiente jugador automáticamente
+            setTimeout(() => cambiarTurno(), 500);
+        }
+    } else {
+        // Cambiar de turno automáticamente después de cada acción
+        setTimeout(() => cambiarTurno(), 500);
+    }
+}
+
+// Exportar función para uso global
+window.cambiarTurno = cambiarTurno;
+window.gastarPAyCambiarTurno = gastarPAyCambiarTurno;
+
+// Verificar si todos los jugadores han terminado sus PA
+function todosJugadoresHanTerminado() {
+    return jugadores.every(j => j.paRestantes === 0);
+}
+
+// ===================================
+// FUNCIONES DE ACTUALIZACIÓN DE UI
+// ===================================
+
 // Función para actualizar el DOM (la interfaz HTML)
 function actualizarIU() {
-    const jugador = jugadores[0]; // Usamos solo el primer jugador
+    const jugador = obtenerJugadorActual();
+
+    // Actualizar nombre del jugador activo
+    const nombreEl = document.getElementById('jugador-nombre');
+    if (nombreEl) {
+        nombreEl.textContent = `Panel de ${jugador.nombre}`;
+        nombreEl.style.color = gameState.jugadorActual === 0 ? '#e74c3c' : '#3498db';
+    }
+
+    // Actualizar indicador de turno
+    const indicadorTurno = document.getElementById('indicador-turno');
+    if (indicadorTurno) {
+        const esJugadorInicial = gameState.jugadorActual === gameState.jugadorInicial;
+        indicadorTurno.textContent = `⭐ ES TU TURNO ${esJugadorInicial ? '(Jugador Inicial)' : ''} ⭐`;
+        indicadorTurno.style.background = gameState.jugadorActual === 0 ? '#e74c3c' : '#3498db';
+    }
+
     const rondaEl = document.getElementById('ronda-actual');
     if (rondaEl) rondaEl.textContent = gameState.rondaActual;
     document.getElementById('dinero').textContent = jugador.dinero.toFixed(2);
@@ -103,8 +170,13 @@ function actualizarIU() {
                 btnComprar.textContent = `Tostadora ${variedades[grano].nombre} adquirida`;
                 btnComprar.setAttribute('disabled', 'disabled');
             } else {
-                btnComprar.textContent = `Comprar Tostadora ${variedades[grano].nombre}`;
-                btnComprar.removeAttribute('disabled');
+                btnComprar.textContent = `Comprar Tostadora ${variedades[grano].nombre} (1 PA)`;
+                // Deshabilitar si no hay PA
+                if (paRestantes > 0) {
+                    btnComprar.removeAttribute('disabled');
+                } else {
+                    btnComprar.setAttribute('disabled', 'disabled');
+                }
             }
         }
 
@@ -139,6 +211,42 @@ function actualizarIU() {
         });
     }
     document.getElementById('parcelas-listado').innerHTML = parcelasHTML;
+
+    // Actualizar resumen de todos los jugadores
+    actualizarResumenJugadores();
+}
+
+// Función para actualizar el resumen de jugadores
+function actualizarResumenJugadores() {
+    const resumenEl = document.getElementById('resumen-jugadores');
+    if (!resumenEl) return;
+
+    let html = '';
+    jugadores.forEach((j, index) => {
+        const esActual = index === gameState.jugadorActual;
+        const esInicial = index === gameState.jugadorInicial;
+        const color = index === 0 ? '#e74c3c' : '#3498db';
+        const borderStyle = esActual ? `3px solid ${color}` : '1px solid #ddd';
+        const bgColor = esActual ? 'rgba(52, 152, 219, 0.1)' : 'white';
+
+        html += `
+            <div style="border: ${borderStyle}; padding: 10px; margin-bottom: 10px; border-radius: 5px; background: ${bgColor};">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="margin: 0; color: ${color};">
+                        ${j.nombre} ${esActual ? '⭐' : ''} ${esInicial ? '(Inicial)' : ''}
+                    </h4>
+                    <span style="font-weight: bold; color: ${j.paRestantes > 0 ? '#27ae60' : '#95a5a6'};">
+                        ${j.paRestantes} PA
+                    </span>
+                </div>
+                <div style="font-size: 0.9em; margin-top: 5px; color: #555;">
+                    💰 ${j.dinero.toFixed(0)}€ | ⭐ ${j.puntosVictoria} PV
+                </div>
+            </div>
+        `;
+    });
+
+    resumenEl.innerHTML = html;
 }
 
 // ===================================
@@ -159,37 +267,41 @@ function iniciarJuego() {
 
 async function pasarTurno() {
     console.log("pasarTurno llamado");
-    const jugador = jugadores[0];
-    
+    const jugador = obtenerJugadorActual();
+
     if (jugador.paRestantes < 1) {
-        await mostrarAlerta("No tienes PA suficientes para pasar turno. Usa 'INICIAR NUEVA RONDA' para obtener más PA.", 'advertencia');
+        await mostrarAlerta("No tienes PA suficientes para pasar turno.", 'advertencia');
         return;
     }
-    
-    // Pasar turno: pierde 1 PA y avanza el tiempo
-    jugador.paRestantes--;
-    
+
     // Avanzar cultivos (los contratos solo cambian al final de la ronda)
     avanzarCultivos(jugador);
-    
-    addLog(`Turno pasado. PA restantes: ${jugador.paRestantes}`, 'accion');
-    actualizarIU();
+
+    addLog(`${jugador.nombre} pasa turno.`, 'accion');
+
+    // Gastar PA y cambiar de turno automáticamente
+    gastarPAyCambiarTurno(jugador, 1);
 }
 
 window.pasarTurno = pasarTurno;
 
 async function iniciarRonda() {
-    const jugador = jugadores[0];
     const btnIniciar = document.getElementById('btn-iniciar-ronda');
     const textoNuevaRonda = 'Nueva ronda';
 
     if (!gameState.partidaIniciada) {
         gameState.partidaIniciada = true;
         gameState.rondaActual = 1;
-        jugador.paRestantes = 3;
+        gameState.jugadorActual = 0;
+        gameState.jugadorInicial = 0;
+
+        // Dar PA a todos los jugadores
+        jugadores.forEach(j => j.paRestantes = 3);
 
         if (btnIniciar) btnIniciar.textContent = textoNuevaRonda;
-        addLog(`--- RONDA ${gameState.rondaActual} INICIADA. Recibes 3 PA. ---`, 'ronda');
+        addLog(`--- RONDA ${gameState.rondaActual} INICIADA ---`, 'ronda');
+        addLog(`Todos los jugadores reciben 3 PA.`, 'info');
+        addLog(`Comienza ${jugadores[gameState.jugadorInicial].nombre}`, 'info');
         await asegurarContratosCompletos();
         actualizarIU();
         return;
@@ -197,17 +309,30 @@ async function iniciarRonda() {
 
     if (btnIniciar) btnIniciar.textContent = textoNuevaRonda;
 
-    if (jugador.paRestantes > 0) {
-        const confirmar = await mostrarConfirmacion(`Aún te quedan ${jugador.paRestantes} PA sin gastar. ¿Seguro que quieres pasar a la siguiente ronda?`);
+    // Verificar que todos los jugadores hayan terminado
+    const jugadoresConPA = jugadores.filter(j => j.paRestantes > 0);
+    if (jugadoresConPA.length > 0) {
+        const nombres = jugadoresConPA.map(j => `${j.nombre} (${j.paRestantes} PA)`).join(', ');
+        const confirmar = await mostrarConfirmacion(`Aún quedan jugadores con PA: ${nombres}. ¿Seguro que quieres pasar a la siguiente ronda?`);
         if (!confirmar) return;
     }
 
     gameState.rondaActual++;
-    jugador.paRestantes = 3;
 
-    pagarMantenimiento(jugador);
-    avanzarCultivos(jugador);
-    addLog(`--- RONDA ${gameState.rondaActual} INICIADA. Recibes 3 PA. ---`, 'ronda');
+    // Alternar jugador inicial
+    gameState.jugadorInicial = (gameState.jugadorInicial + 1) % jugadores.length;
+    gameState.jugadorActual = gameState.jugadorInicial;
+
+    // Dar PA a todos los jugadores y aplicar mantenimiento
+    jugadores.forEach(jugador => {
+        jugador.paRestantes = 3;
+        pagarMantenimiento(jugador);
+        avanzarCultivos(jugador);
+    });
+
+    addLog(`--- RONDA ${gameState.rondaActual} INICIADA ---`, 'ronda');
+    addLog(`Todos los jugadores reciben 3 PA.`, 'info');
+    addLog(`Comienza ${jugadores[gameState.jugadorInicial].nombre}`, 'info');
     actualizarIU();
 
     await avanzarContratos();
@@ -269,7 +394,7 @@ function pagarMantenimiento(jugador) {
 }
 
 async function plantar(tipoGrano) {
-    const jugador = jugadores[0];
+    const jugador = obtenerJugadorActual();
     const variedad = variedades[tipoGrano];
     
     if (jugador.paRestantes < 1) {
@@ -281,7 +406,6 @@ async function plantar(tipoGrano) {
         return;
     }
 
-    jugador.paRestantes--;
     jugador.dinero -= variedad.costePlantacion;
 
     const nuevaParcela = {
@@ -293,11 +417,13 @@ async function plantar(tipoGrano) {
 
     console.log(`Plantado ${variedad.nombre}. Coste: ${variedad.costePlantacion} €. `);
     addLog(`Plantado ${variedad.nombre}. Coste: ${variedad.costePlantacion} €.`, 'gasto');
+
     actualizarIU();
+    gastarPAyCambiarTurno(jugador, 1);
 }
 
 async function venderMercadoLocal(tipoGrano) {
-    const jugador = jugadores[0];
+    const jugador = obtenerJugadorActual();
     const inventarioKey = `verde_${tipoGrano}`;
     const precioUnitario = variedades[tipoGrano].precioVentaEmergencia;
     const cantidadVender = jugador.inventario[inventarioKey];
@@ -311,8 +437,6 @@ async function venderMercadoLocal(tipoGrano) {
         return;
     }
     
-    jugador.paRestantes--;
-
     const ganancia = cantidadVender * precioUnitario;
     jugador.dinero += ganancia;
     jugador.inventario[inventarioKey] = 0;
@@ -320,7 +444,9 @@ async function venderMercadoLocal(tipoGrano) {
     const nombreVariedad = variedades[tipoGrano].nombre;
     console.log(`Vendido ${cantidadVender} sacos de ${nombreVariedad}. Ganancia: ${ganancia} €. `);
     addLog(`Vendido ${cantidadVender} sacos de ${nombreVariedad}. Ganancia: ${ganancia} €.`, 'ganancia');
+
     actualizarIU();
+    gastarPAyCambiarTurno(jugador, 1);
 }
 
 function addLog(mensaje, tipo = 'accion', iconoPersonalizado = null) {
@@ -338,7 +464,7 @@ function addLog(mensaje, tipo = 'accion', iconoPersonalizado = null) {
 let tipoVentaActual = null;
 
 async function abrirModalVenta(tipoGrano) {
-    const jugador = jugadores[0];
+    const jugador = obtenerJugadorActual();
     tipoVentaActual = tipoGrano;
     const inventarioKey = `verde_${tipoGrano}`;
     const stock = jugador.inventario[inventarioKey];
@@ -376,7 +502,7 @@ function cerrarModalVenta() {
 }
 
 async function ejecutarVenta() {
-    const jugador = jugadores[0];
+    const jugador = obtenerJugadorActual();
     const select = document.getElementById('cantidadVenta');
     const cantidad = parseInt(select.value);
     const inventarioKey = `verde_${tipoVentaActual}`;
@@ -395,13 +521,13 @@ async function ejecutarVenta() {
     const ganancia = cantidad * precioUnitario;
     jugador.inventario[inventarioKey] -= cantidad;
     jugador.dinero += ganancia;
-    jugador.paRestantes--;
 
     const nombreVariedad = variedades[tipoVentaActual].nombre;
     addLog(`Vendido ${cantidad} sacos de ${nombreVariedad}. Ganancia: ${ganancia} €.`, 'ganancia');
 
     cerrarModalVenta();
     actualizarIU();
+    gastarPAyCambiarTurno(jugador, 1);
 }
 
 // ===================================
@@ -411,7 +537,14 @@ async function ejecutarVenta() {
 let granoSeleccionadoTostadora = null;
 
 async function comprarTostadora(tipoGrano) {
-    const jugador = jugadores[0];
+    const jugador = obtenerJugadorActual();
+
+    // Verificar PA
+    if (jugador.paRestantes < 1) {
+        await mostrarAlerta('No tienes PA suficientes para comprar la tostadora.', 'advertencia');
+        return;
+    }
+
     const estado = jugador.activos.tostadoras || {};
     if (!jugador.activos.tostadoras) {
         jugador.activos.tostadoras = estado;
@@ -422,7 +555,7 @@ async function comprarTostadora(tipoGrano) {
     }
     const coste = costeTostadoras[tipoGrano];
     const confirmar = await mostrarConfirmacion(
-        `Comprar Tostadora de ${variedades[tipoGrano].nombre} por ${coste} €?`,
+        `Comprar Tostadora de ${variedades[tipoGrano].nombre} por ${coste} €? (Coste: 1 PA)`,
         'Comprar Tostadora'
     );
     if (!confirmar) return;
@@ -433,11 +566,13 @@ async function comprarTostadora(tipoGrano) {
     jugador.dinero -= coste;
     estado[tipoGrano] = true;
     addLog(`Tostadora comprada: ${variedades[tipoGrano].nombre} (${coste} €)`, 'gasto');
+
     actualizarIU();
+    gastarPAyCambiarTurno(jugador, 1);
 }
 
 async function abrirTostadora(tipoGrano) {
-    const jugador = jugadores[0];
+    const jugador = obtenerJugadorActual();
     const estado = jugador.activos.tostadoras || {};
     if (!estado[tipoGrano]) {
         await mostrarAlerta('Compra la tostadora primero.', 'info');
@@ -470,7 +605,7 @@ function cerrarModalTostado() {
 
 function actualizarCosteTostadoModal() {
     if (!granoSeleccionadoTostadora) return;
-    const jugador = jugadores[0];
+    const jugador = obtenerJugadorActual();
     const metodoSeleccionado = document.querySelector('input[name="metodo-tostado"]:checked');
     const metodo = metodoSeleccionado ? metodoSeleccionado.value : 'TOSTADO_ARTESANAL';
     const proceso = procesos[metodo];

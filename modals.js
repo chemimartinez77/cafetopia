@@ -56,19 +56,28 @@ function mostrarAlerta(mensaje, tipo = 'info', titulo = null) {
         
         nuevoBtnAceptar.onclick = () => {
             modal.classList.remove('mostrar');
-            modal.style.display = "none";
+            setTimeout(() => {
+                if (!modal.classList.contains('mostrar')) {
+                    modal.style.display = "none";
+                }
+            }, 300); // Esperar a que termine la animación
             resolve(true);
         };
 
-        
+
         // Mostrar modal
+        modal.style.display = "flex";
         modal.classList.add('mostrar');
-        
+
         // Cerrar al hacer clic fuera del modal
         modal.onclick = (e) => {
             if (e.target === modal) {
                 modal.classList.remove('mostrar');
-                modal.style.display = "none";
+                setTimeout(() => {
+                    if (!modal.classList.contains('mostrar')) {
+                        modal.style.display = "none";
+                    }
+                }, 300); // Esperar a que termine la animación
                 resolve(false);
             }
         };
@@ -106,21 +115,37 @@ function mostrarConfirmacion(mensaje, titulo = 'Confirmar') {
         
         nuevoBtnAceptar.onclick = () => {
             modal.classList.remove('mostrar');
+            setTimeout(() => {
+                if (!modal.classList.contains('mostrar')) {
+                    modal.style.display = "none";
+                }
+            }, 300); // Esperar a que termine la animación
             resolve(true);
         };
-        
+
         nuevoBtnCancelar.onclick = () => {
             modal.classList.remove('mostrar');
+            setTimeout(() => {
+                if (!modal.classList.contains('mostrar')) {
+                    modal.style.display = "none";
+                }
+            }, 300); // Esperar a que termine la animación
             resolve(false);
         };
-        
+
         // Mostrar modal
+        modal.style.display = "flex";
         modal.classList.add('mostrar');
-        
+
         // Cerrar al hacer clic fuera del modal (cancelar)
         modal.onclick = (e) => {
             if (e.target === modal) {
                 modal.classList.remove('mostrar');
+                setTimeout(() => {
+                    if (!modal.classList.contains('mostrar')) {
+                        modal.style.display = "none";
+                    }
+                }, 300); // Esperar a que termine la animación
                 resolve(false);
             }
         };

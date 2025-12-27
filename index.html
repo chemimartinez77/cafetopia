@@ -25,9 +25,12 @@
             </div>
 
             <div id="jugador-panel">
-                <h2>Panel de Jugador 1</h2>
+                <h2 id="jugador-nombre">Panel de Jugador 1</h2>
                 <div class="jugador-stats">
                     Dinero: <span id="dinero">5000</span>&euro; | PV: <span id="pv">0</span> | PA Restantes: <span id="pa-restantes">0</span>
+                </div>
+                <div id="indicador-turno" class="indicador-turno-activo" style="background: #27ae60; color: white; padding: 8px; border-radius: 4px; margin: 10px 0; text-align: center; font-weight: bold;">
+                    ⭐ ES TU TURNO ⭐
                 </div>
 
                 <h3>1. Acciones de Cultivo (Coste 1 PA)</h3>
@@ -46,11 +49,11 @@
                         <h4>Robusta</h4>
                         <p class="tostadora-estado" id="tostadora-status-A">Sin m&aacute;quina</p>
                         <div class="tostadora-botones">
-                            <button class="btn-accion btn-comprar" data-ignorar-pa="true" id="btn-comprar-tostadora-A" onclick="comprarTostadora('A')">
-                                Comprar Tostadora Robusta
+                            <button class="btn-accion btn-comprar" id="btn-comprar-tostadora-A" onclick="comprarTostadora('A')">
+                                Comprar Tostadora Robusta (1 PA)
                             </button>
                             <button class="btn-accion btn-tostadora" id="btn-usar-tostadora-A" onclick="abrirTostadora('A')" disabled>
-                                Tostadora Robusta
+                                Tostar café Robusta
                             </button>
                         </div>
                     </div>
@@ -58,11 +61,11 @@
                         <h4>Ar&aacute;bica</h4>
                         <p class="tostadora-estado" id="tostadora-status-B">Sin m&aacute;quina</p>
                         <div class="tostadora-botones">
-                            <button class="btn-accion btn-comprar" data-ignorar-pa="true" id="btn-comprar-tostadora-B" onclick="comprarTostadora('B')">
-                                Comprar Tostadora Ar&aacute;bica
+                            <button class="btn-accion btn-comprar" id="btn-comprar-tostadora-B" onclick="comprarTostadora('B')">
+                                Comprar Tostadora Ar&aacute;bica (1 PA)
                             </button>
                             <button class="btn-accion btn-tostadora" id="btn-usar-tostadora-B" onclick="abrirTostadora('B')" disabled>
-                                Tostadora Ar&aacute;bica
+                                Tostar café Ar&aacute;bica
                             </button>
                         </div>
                     </div>
@@ -70,11 +73,11 @@
                         <h4>Geisha</h4>
                         <p class="tostadora-estado" id="tostadora-status-E">Sin m&aacute;quina</p>
                         <div class="tostadora-botones">
-                            <button class="btn-accion btn-comprar" data-ignorar-pa="true" id="btn-comprar-tostadora-E" onclick="comprarTostadora('E')">
-                                Comprar Tostadora Geisha
+                            <button class="btn-accion btn-comprar" id="btn-comprar-tostadora-E" onclick="comprarTostadora('E')">
+                                Comprar Tostadora Geisha (1 PA)
                             </button>
                             <button class="btn-accion btn-tostadora" id="btn-usar-tostadora-E" onclick="abrirTostadora('E')" disabled>
-                                Tostadora Geisha
+                                Tostar café Geisha
                             </button>
                         </div>
                     </div>
@@ -110,6 +113,11 @@
         </div>
 
         <div class="columna-contratos">
+            <h2>Estado de Jugadores</h2>
+            <div id="resumen-jugadores" style="margin-bottom: 20px;">
+                <!-- Resumen de jugadores se genera dinámicamente -->
+            </div>
+
             <h2>Contratos</h2>
             <div id="contratos-listado"></div>
         </div>
