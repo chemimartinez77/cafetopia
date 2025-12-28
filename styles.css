@@ -77,6 +77,26 @@ h1 {
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
+.panel-inventario {
+    border: 3px solid #ddd;
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+}
+
+.panel-inventario.jugador-1-inv.activo {
+    border-color: #e74c3c;
+    box-shadow: 0 0 15px rgba(231, 76, 60, 0.3);
+}
+
+.panel-inventario.jugador-2-inv.activo {
+    border-color: #3498db;
+    box-shadow: 0 0 15px rgba(52, 152, 219, 0.3);
+}
+
+.panel-inventario.inactivo {
+    opacity: 0.65;
+}
+
 .panel-log {
     flex: 1;
     display: flex;

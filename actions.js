@@ -74,30 +74,82 @@ function actualizarIU() {
     document.getElementById('dinero').textContent = jugador.dinero.toFixed(2);
     document.getElementById('pv').textContent = jugador.puntosVictoria;
     document.getElementById('pa-restantes').textContent = jugador.paRestantes;
-    document.getElementById('inv-verde-A').textContent = jugador.inventario.verde_A ?? 0;
-    if (document.getElementById('inv-verde-B'))
-        document.getElementById('inv-verde-B').textContent = jugador.inventario.verde_B ?? 0;
-    if (document.getElementById('inv-verde-E'))
-        document.getElementById('inv-verde-E').textContent = jugador.inventario.verde_E ?? 0;
-    
-    // Actualizar inventarios de café procesado
-    const invTostadoArtA = document.getElementById('inv-tostado_artesanal-A');
-    if (invTostadoArtA) invTostadoArtA.textContent = jugador.inventario.tostado_artesanal_A ?? 0;
-    
-    const invTostadoArtB = document.getElementById('inv-tostado_artesanal-B');
-    if (invTostadoArtB) invTostadoArtB.textContent = jugador.inventario.tostado_artesanal_B ?? 0;
-    
-    const invTostadoArtE = document.getElementById('inv-tostado_artesanal-E');
-    if (invTostadoArtE) invTostadoArtE.textContent = jugador.inventario.tostado_artesanal_E ?? 0;
-    
-    const invTostadoIndA = document.getElementById('inv-tostado_industrial-A');
-    if (invTostadoIndA) invTostadoIndA.textContent = jugador.inventario.tostado_industrial_A ?? 0;
-    
-    const invTostadoIndB = document.getElementById('inv-tostado_industrial-B');
-    if (invTostadoIndB) invTostadoIndB.textContent = jugador.inventario.tostado_industrial_B ?? 0;
-    
-    const invTostadoIndE = document.getElementById('inv-tostado_industrial-E');
-    if (invTostadoIndE) invTostadoIndE.textContent = jugador.inventario.tostado_industrial_E ?? 0;
+
+    // Actualizar paneles superiores y inventarios de AMBOS jugadores
+    jugadores.forEach((j, idx) => {
+        const jugadorNum = idx + 1;
+        const esActivo = idx === gameState.jugadorActual;
+
+        // Actualizar panel superior de stats (dinero, PV, PA)
+        const panelSuperior = document.getElementById(`jugador-panel-${jugadorNum}`);
+        if (panelSuperior) {
+            panelSuperior.className = `panel-jugador ${esActivo ? 'activo' : 'inactivo'}`;
+            panelSuperior.style.opacity = esActivo ? '1' : '0.5';
+        }
+
+        const dineroEl = document.getElementById(`dinero-${jugadorNum}`);
+        if (dineroEl) dineroEl.textContent = j.dinero.toFixed(0);
+
+        const pvEl = document.getElementById(`pv-${jugadorNum}`);
+        if (pvEl) pvEl.textContent = j.puntosVictoria;
+
+        const paEl = document.getElementById(`pa-${jugadorNum}`);
+        if (paEl) paEl.textContent = j.paRestantes;
+
+        // Actualizar clases de panel de inventario (activo/inactivo)
+        const panelInv = document.querySelector(`.jugador-${jugadorNum}-inv`);
+        if (panelInv) {
+            panelInv.className = `panel-inventario jugador-${jugadorNum}-inv ${esActivo ? 'activo' : 'inactivo'}`;
+        }
+
+        // Actualizar grano verde
+        const invVerdeA = document.getElementById(`inv-verde-A-${jugadorNum}`);
+        if (invVerdeA) invVerdeA.textContent = j.inventario.verde_A ?? 0;
+
+        const invVerdeB = document.getElementById(`inv-verde-B-${jugadorNum}`);
+        if (invVerdeB) invVerdeB.textContent = j.inventario.verde_B ?? 0;
+
+        const invVerdeE = document.getElementById(`inv-verde-E-${jugadorNum}`);
+        if (invVerdeE) invVerdeE.textContent = j.inventario.verde_E ?? 0;
+
+        // Actualizar café procesado
+        const invTostadoArtA = document.getElementById(`inv-tostado_artesanal-A-${jugadorNum}`);
+        if (invTostadoArtA) invTostadoArtA.textContent = j.inventario.tostado_artesanal_A ?? 0;
+
+        const invTostadoArtB = document.getElementById(`inv-tostado_artesanal-B-${jugadorNum}`);
+        if (invTostadoArtB) invTostadoArtB.textContent = j.inventario.tostado_artesanal_B ?? 0;
+
+        const invTostadoArtE = document.getElementById(`inv-tostado_artesanal-E-${jugadorNum}`);
+        if (invTostadoArtE) invTostadoArtE.textContent = j.inventario.tostado_artesanal_E ?? 0;
+
+        const invTostadoIndA = document.getElementById(`inv-tostado_industrial-A-${jugadorNum}`);
+        if (invTostadoIndA) invTostadoIndA.textContent = j.inventario.tostado_industrial_A ?? 0;
+
+        const invTostadoIndB = document.getElementById(`inv-tostado_industrial-B-${jugadorNum}`);
+        if (invTostadoIndB) invTostadoIndB.textContent = j.inventario.tostado_industrial_B ?? 0;
+
+        const invTostadoIndE = document.getElementById(`inv-tostado_industrial-E-${jugadorNum}`);
+        if (invTostadoIndE) invTostadoIndE.textContent = j.inventario.tostado_industrial_E ?? 0;
+
+        // Actualizar parcelas de este jugador
+        let parcelasHTML = '<h4>🌱 Parcelas en Crecimiento:</h4>';
+        if (j.parcelas.length === 0) {
+            parcelasHTML += '<p style="color: #999;">No hay cultivos activos</p>';
+        } else {
+            j.parcelas.forEach((p) => {
+                const progreso = '🌱'.repeat(Math.max(1, 4 - p.rondasRestantes));
+                const nombreVariedad = variedades[p.tipo].nombre;
+                parcelasHTML += `
+                    <div class="parcela-item">
+                        ${progreso} <strong>${nombreVariedad}</strong> -
+                        ${p.rondasRestantes} ronda${p.rondasRestantes !== 1 ? 's' : ''} restante${p.rondasRestantes !== 1 ? 's' : ''} -
+                        Cosecha: ${p.produccionSacos} sacos
+                    </div>`;
+            });
+        }
+        const parcelasListado = document.getElementById(`parcelas-listado-${jugadorNum}`);
+        if (parcelasListado) parcelasListado.innerHTML = parcelasHTML;
+    });
 
     // === Lógica de Bloqueo de Botones ===
     const botonesAccion = document.querySelectorAll('.btn-accion');
@@ -193,24 +245,6 @@ function actualizarIU() {
             estado.classList.toggle('tostadora-disponible', tieneTostadora);
         }
     });
-
-    // Actualizar listado de parcelas
-    let parcelasHTML = '<h4>Parcelas en Crecimiento:</h4>';
-    if (jugador.parcelas.length === 0) {
-        parcelasHTML += '<p style="color: #999;">No hay cultivos activos</p>';
-    } else {
-        jugador.parcelas.forEach((p, index) => {
-            const progreso = '🌱'.repeat(Math.max(1, 4 - p.rondasRestantes));
-            const nombreVariedad = variedades[p.tipo].nombre;
-            parcelasHTML += `
-                <div class="parcela-item">
-                    ${progreso} <strong>${nombreVariedad}</strong> - 
-                    ${p.rondasRestantes} ronda${p.rondasRestantes !== 1 ? 's' : ''} restante${p.rondasRestantes !== 1 ? 's' : ''} - 
-                    Cosecha: ${p.produccionSacos} sacos
-                </div>`;
-        });
-    }
-    document.getElementById('parcelas-listado').innerHTML = parcelasHTML;
 
     // Actualizar resumen de todos los jugadores
     actualizarResumenJugadores();

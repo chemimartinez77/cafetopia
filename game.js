@@ -17,7 +17,7 @@ const gameState = {
 // ===================================
 let jugadores = [
     {
-        nombre: "Jugador 1",
+        nombre: "Chemi",
         dinero: 5000,
         puntosVictoria: 0,
         paRestantes: 0,
@@ -43,7 +43,7 @@ let jugadores = [
         }
     },
     {
-        nombre: "Jugador 2",
+        nombre: "Pablo",
         dinero: 5000,
         puntosVictoria: 0,
         paRestantes: 0,
