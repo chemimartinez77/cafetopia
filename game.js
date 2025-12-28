@@ -12,6 +12,9 @@ const gameState = {
     jugadorInicial: 0 // Jugador que inicia la ronda actual
 };
 
+// Exportar gameState globalmente
+window.gameState = gameState;
+
 // ===================================
 // 2. DATOS DE LOS JUGADORES
 // ===================================
@@ -70,6 +73,9 @@ let jugadores = [
     }
 ];
 
+// Exportar jugadores globalmente
+window.jugadores = jugadores;
+
 // ===================================
 // 3. DATOS CONSTANTES (COSTE/TIEMPO)
 // ===================================
@@ -90,14 +96,17 @@ const variedades = {
         produccionSacos: 3, 
         precioVentaEmergencia: 200  // Antes 250 - Pérdida de 100€/saco
     },
-    E: { 
-        nombre: "Geisha", 
-        costePlantacion: 3000, 
-        tiempoCrecimiento: 4, 
-        produccionSacos: 1, 
+    E: {
+        nombre: "Geisha",
+        costePlantacion: 3000,
+        tiempoCrecimiento: 4,
+        produccionSacos: 1,
         precioVentaEmergencia: 400  // Antes 600 - Pérdida significativa
     }
 };
+
+// Exportar variedades globalmente
+window.variedades = variedades;
 
 const costeTostadoras = {
     A: 1500,

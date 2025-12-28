@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(test:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npm install)",
+      "Bash(git checkout c:_Chemicafestyles.css)",
+      "Bash(git checkout:*)",
+      "Bash(netstat:*)"
     ]
   }
 }

@@ -202,5 +202,19 @@
     <script src="contratos.js"></script>
     <script src="actions.js"></script>
     <script src="ui-enhancements.js"></script>
+
+    <!-- Turn blocking overlay -->
+    <div id="turn-overlay">
+        <div id="turn-overlay-message">
+            ⏳ Esperando turno del oponente...
+        </div>
+    </div>
+
+    <!-- Socket.io para multijugador -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="sync.js"></script>
+    <script src="network-socketio.js"></script>
+    <script src="network-actions-wrapper.js"></script>
+    <script src="network-integration.js"></script>
 </body>
 </html>
