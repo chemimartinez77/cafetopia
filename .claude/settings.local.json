@@ -6,7 +6,13 @@
       "Bash(npm install)",
       "Bash(git checkout c:_Chemicafestyles.css)",
       "Bash(git checkout:*)",
-      "Bash(netstat:*)"
+      "Bash(netstat:*)",
+      "Bash(curl:*)",
+      "Bash(findstr:*)",
+      "Bash(ipconfig:*)",
+      "Bash(netsh advfirewall firewall add rule:*)",
+      "Bash(openssl req:*)",
+      "Bash(dir:*)"
     ]
   }
 }

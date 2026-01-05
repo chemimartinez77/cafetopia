@@ -34,9 +34,15 @@
                 </div>
 
                 <h3>1. Acciones de Cultivo (Coste 1 PA)</h3>
-                <button class="btn-accion" onclick="plantar('A')">Plantar Robusta (1 Ronda, 500&euro;)</button>
-                <button class="btn-accion" onclick="plantar('B')">Plantar Ar&aacute;bica (2 Rondas, 1000&euro;)</button>
-                <button class="btn-accion" onclick="plantar('E')">Plantar Geisha (4 Rondas, 3000&euro;)</button>
+                <button class="btn-accion btn-plantar" onclick="plantar('A')" title="Plantar Robusta (1 Ronda, 500€)">
+                    <img src="public/plantar.robusta.png" alt="Plantar Robusta">
+                </button>
+                <button class="btn-accion btn-plantar" onclick="plantar('B')" title="Plantar Arábica (2 Rondas, 1000€)">
+                    <img src="public/plantar.arabica.png" alt="Plantar Arábica">
+                </button>
+                <button class="btn-accion btn-plantar" onclick="plantar('E')" title="Plantar Geisha (4 Rondas, 3000€)">
+                    <img src="public/plantar.geisha.png" alt="Plantar Geisha">
+                </button>
 
                 <h3>2. Acciones de Venta (Grano Verde) (Coste 1 PA)</h3>
                 <button class="btn-accion" id="btn-vender-A" onclick="abrirModalVenta('A')" disabled>Vender Grano Verde Robusta</button>

@@ -13,8 +13,10 @@ function initializeNetwork() {
     // Crear instancia de red
     gameNetwork = new GameNetworkSocketIO();
 
-    // Conectar al servidor
-    gameNetwork.connect('http://localhost:3000');
+    // Conectar al servidor usando la URL actual del navegador
+    const serverUrl = `${window.location.protocol}//${window.location.host}`;
+    console.log('📡 Conectando a:', serverUrl);
+    gameNetwork.connect(serverUrl);
 
     // Configurar callbacks
     gameNetwork.onGameCreated((data) => {
@@ -254,6 +256,11 @@ async function networkAction(actionType, actionData) {
 
         console.log('📤 Enviando acción al peer:', snapshot);
         gameNetwork.sendAction(actionType, actionData, snapshot);
+
+        // Actualizar overlay después de ejecutar la acción
+        setTimeout(() => {
+            actualizarEstadoTurno();
+        }, 700);
     } else {
         console.error('❌ La acción falló localmente');
     }
@@ -263,6 +270,9 @@ async function executeActionLocally(actionType, actionData) {
     try {
         // Usar funciones originales (sin wrapper) para evitar bucle infinito
         const funciones = window.funcionesOriginales || window;
+
+        // Detectar si NO somos el iniciador (recibiendo acción de red)
+        const skipConfirmation = gameNetwork && !gameNetwork.isActionInitiator;
 
         switch (actionType) {
             case 'PLANTAR':
@@ -283,6 +293,7 @@ async function executeActionLocally(actionType, actionData) {
                 return true;
 
             case 'COMPRAR_TOSTADORA':
+                // Siempre llamar sin confirmación (la confirmación ya se hizo en el wrapper)
                 if (typeof funciones.comprarTostadora === 'function') {
                     await funciones.comprarTostadora(actionData.tipo);
                 }
@@ -345,9 +356,10 @@ async function aplicarAccionRecibida(message) {
     gameNetwork.isActionInitiator = true;
 
     // Actualizar estado de turno después de recibir acción
+    // El timeout debe ser mayor que el de gastarPAyCambiarTurno (500ms)
     setTimeout(() => {
         actualizarEstadoTurno();
-    }, 100);
+    }, 700);
 }
 
 function aplicarSincronizacionEstado(state) {
@@ -401,6 +413,7 @@ function actualizarEstadoTurno() {
     // En modo local, nunca bloquear
     if (!gameNetwork || gameNetwork.gameMode === 'local') {
         overlay.classList.remove('active');
+        bloquearBotonesHost(); // Actualizar botones también
         return;
     }
 
@@ -408,24 +421,59 @@ function actualizarEstadoTurno() {
     const jugadorActual = window.gameState?.jugadorActual ?? 0;
     const esMiTurno = miIndice === jugadorActual;
 
-    if (esMiTurno) {
+    // Verificar si todos los jugadores terminaron sus PA
+    const todosTerminaron = window.jugadores?.every(j => j.paRestantes === 0) ?? false;
+
+    // Si todos terminaron, desbloquear para todos (pueden ver pero solo jugador inicial puede hacer click en nueva ronda)
+    if (todosTerminaron) {
+        overlay.classList.remove('active');
+    } else if (esMiTurno) {
         overlay.classList.remove('active');
     } else {
         overlay.classList.add('active');
     }
+
+    // Actualizar estado de botones según quien puede iniciar ronda
+    bloquearBotonesHost();
 }
 
 function bloquearBotonesHost() {
     const btnIniciarRonda = document.getElementById('btn-iniciar-ronda');
+    if (!btnIniciarRonda) return;
 
-    // Solo el host puede iniciar ronda y nueva ronda
-    if (gameNetwork && gameNetwork.gameMode !== 'local' && !gameNetwork.isHost) {
-        if (btnIniciarRonda) {
-            btnIniciarRonda.disabled = true;
-            btnIniciarRonda.style.opacity = '0.5';
-            btnIniciarRonda.style.cursor = 'not-allowed';
-            btnIniciarRonda.title = 'Solo el host puede iniciar la ronda';
-        }
+    // En modo local, no bloquear
+    if (!gameNetwork || gameNetwork.gameMode === 'local') {
+        return;
+    }
+
+    const miIndice = gameNetwork.isHost ? 0 : 1;
+    const jugadorInicial = window.gameState?.jugadorInicial ?? 0;
+    const todosTerminaron = window.jugadores?.every(j => j.paRestantes === 0) ?? false;
+
+    // Solo el jugador inicial de la ronda puede hacer click en "Nueva ronda"
+    if (todosTerminaron && miIndice !== jugadorInicial) {
+        btnIniciarRonda.disabled = true;
+        btnIniciarRonda.style.opacity = '0.5';
+        btnIniciarRonda.style.cursor = 'not-allowed';
+        btnIniciarRonda.title = 'Solo el jugador inicial puede iniciar la nueva ronda';
+    } else if (todosTerminaron && miIndice === jugadorInicial) {
+        // Es el jugador inicial y todos terminaron - habilitar botón
+        btnIniciarRonda.disabled = false;
+        btnIniciarRonda.style.opacity = '1';
+        btnIniciarRonda.style.cursor = 'pointer';
+        btnIniciarRonda.title = '';
+    } else if (!window.gameState?.partidaIniciada && !gameNetwork.isHost) {
+        // Antes de empezar partida, solo el host puede
+        btnIniciarRonda.disabled = true;
+        btnIniciarRonda.style.opacity = '0.5';
+        btnIniciarRonda.style.cursor = 'not-allowed';
+        btnIniciarRonda.title = 'Solo el host puede empezar la partida';
+    } else if (!window.gameState?.partidaIniciada && gameNetwork.isHost) {
+        // Host puede empezar partida
+        btnIniciarRonda.disabled = false;
+        btnIniciarRonda.style.opacity = '1';
+        btnIniciarRonda.style.cursor = 'pointer';
+        btnIniciarRonda.title = '';
     }
 }
 

@@ -26,10 +26,10 @@ h1 {
 .contenedor-principal {
     flex: 1;
     display: grid;
-    grid-template-columns: minmax(360px, 1.5fr) minmax(300px, 1fr) minmax(280px, 0.9fr);
+    grid-template-columns: minmax(360px, 1.3fr) minmax(300px, 0.9fr) minmax(320px, 1.1fr);
     grid-template-areas: "panel centro contratos";
     gap: 20px;
-    max-width: 1500px;
+    max-width: 1600px;
     margin: 0 auto;
     width: 100%;
     min-height: 0;
@@ -347,6 +347,48 @@ h1 {
     background: #95a5a6;
     transform: none;
     box-shadow: none;
+}
+
+/* Botones de plantar con imágenes */
+.btn-plantar {
+    padding: 0;
+    background: none;
+    border: 3px solid transparent;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    width: 50%;
+    max-width: 150px;
+}
+
+.btn-plantar img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.btn-plantar:hover:not([disabled]) {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+    border-color: #27ae60;
+}
+
+.btn-plantar:active:not([disabled]) {
+    transform: translateY(-1px) scale(1.02);
+}
+
+.btn-plantar[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(70%);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-plantar[disabled]:hover {
+    transform: none;
+    border-color: transparent;
 }
 
 /* Botones de ronda */
@@ -689,6 +731,32 @@ h1 {
         opacity: 0;
         transform: scale(0.96);
     }
+}
+
+/* Estilos para contratos con imagen de fondo (Boutique Local) */
+.contrato-card.contrato-con-fondo {
+    background-size: auto 100%;
+    background-position: right center;
+    background-repeat: no-repeat;
+    position: relative;
+}
+
+.contrato-card.contrato-con-fondo .contrato-contenido {
+    position: relative;
+    z-index: 1;
+    padding-right: 140px;
+}
+
+.contrato-card.contrato-con-fondo strong,
+.contrato-card.contrato-con-fondo small,
+.contrato-card.contrato-con-fondo {
+    text-shadow:
+        -1px -1px 0 rgba(255, 255, 255, 0.9),
+        1px -1px 0 rgba(255, 255, 255, 0.9),
+        -1px 1px 0 rgba(255, 255, 255, 0.9),
+        1px 1px 0 rgba(255, 255, 255, 0.9),
+        0 0 3px rgba(255, 255, 255, 0.8),
+        0 0 6px rgba(255, 255, 255, 0.6);
 }
 
 

@@ -14,6 +14,11 @@ function cambiarTurno() {
     gameState.jugadorActual = (gameState.jugadorActual + 1) % jugadores.length;
     addLog(`--- Turno de ${jugadores[gameState.jugadorActual].nombre} ---`, 'info');
     actualizarIU();
+
+    // Actualizar overlay de turno en modo multijugador
+    if (typeof window.actualizarEstadoTurno === 'function') {
+        window.actualizarEstadoTurno();
+    }
 }
 
 // Gastar PA y cambiar automáticamente de turno
@@ -410,9 +415,20 @@ function avanzarCultivos(jugador) {
 
 function pagarMantenimiento(jugador) {
     let costeTotal = 0;
+    let desglose = [];
+
     for (const tipo in jugador.inventario) {
         if (tipo.startsWith('verde_')) {
-            costeTotal += jugador.inventario[tipo] * gameState.costeAlmacenamiento;
+            // Extraer el tipo de grano (A, B, E) del nombre del inventario
+            const tipoGrano = tipo.split('_')[1]; // verde_A -> A
+            const cantidad = jugador.inventario[tipo];
+
+            if (cantidad > 0 && variedades[tipoGrano]) {
+                const costePorSaco = variedades[tipoGrano].costeAlmacenamiento;
+                const costeGrano = cantidad * costePorSaco;
+                costeTotal += costeGrano;
+                desglose.push(`${cantidad} ${variedades[tipoGrano].nombre} (${costeGrano}€)`);
+            }
         }
     }
 
@@ -423,7 +439,8 @@ function pagarMantenimiento(jugador) {
     jugador.dinero -= costeTotal;
 
     if (costeTotal > 0) {
-        addLog(`Costo de almacenamiento pagado: ${costeTotal.toFixed(2)} EUR`, 'gasto');
+        const detalles = desglose.length > 0 ? ` [${desglose.join(', ')}]` : '';
+        addLog(`Costo de almacenamiento pagado: ${costeTotal.toFixed(2)} EUR${detalles}`, 'gasto');
     }
 }
 
@@ -570,7 +587,8 @@ async function ejecutarVenta() {
 
 let granoSeleccionadoTostadora = null;
 
-async function comprarTostadora(tipoGrano) {
+// Función para mostrar confirmación antes de comprar (solo para el iniciador)
+async function confirmarCompraTostadora(tipoGrano) {
     const jugador = obtenerJugadorActual();
 
     // Verificar PA
@@ -587,22 +605,46 @@ async function comprarTostadora(tipoGrano) {
         await mostrarAlerta(`Ya tienes la tostadora de ${variedades[tipoGrano].nombre}.`, 'info');
         return;
     }
+
     const coste = costeTostadoras[tipoGrano];
+
+    // Mostrar confirmación
     const confirmar = await mostrarConfirmacion(
         `Comprar Tostadora de ${variedades[tipoGrano].nombre} por ${coste} €? (Coste: 1 PA)`,
         'Comprar Tostadora'
     );
-    if (!confirmar) return;
+
+    if (!confirmar) {
+        // Usuario canceló - no hacer nada
+        return;
+    }
+
     if (jugador.dinero < coste) {
         await mostrarAlerta('No tienes suficiente dinero para esta máquina.', 'error');
         return;
     }
+
+    // Usuario aceptó - ejecutar la compra
+    await comprarTostadora(tipoGrano);
+}
+
+// Función interna que ejecuta la compra (se llama después de confirmar o desde la red)
+async function comprarTostadora(tipoGrano) {
+    const jugador = obtenerJugadorActual();
+    const estado = jugador.activos.tostadoras || {};
+    if (!jugador.activos.tostadoras) {
+        jugador.activos.tostadoras = estado;
+    }
+
+    const coste = costeTostadoras[tipoGrano];
+
     jugador.dinero -= coste;
     estado[tipoGrano] = true;
     addLog(`Tostadora comprada: ${variedades[tipoGrano].nombre} (${coste} €)`, 'gasto');
 
     actualizarIU();
     gastarPAyCambiarTurno(jugador, 1);
+    return true;
 }
 
 async function abrirTostadora(tipoGrano) {
@@ -688,6 +730,7 @@ async function confirmarTostado() {
 })();
 
 window.comprarTostadora = comprarTostadora;
+window.confirmarCompraTostadora = confirmarCompraTostadora;
 window.abrirTostadora = abrirTostadora;
 window.cerrarModalTostado = cerrarModalTostado;
 window.confirmarTostado = confirmarTostado;

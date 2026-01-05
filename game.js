@@ -1,5 +1,18 @@
 // game.js
 // ===================================
+// 0. CONSTANTES DE VARIEDADES
+// ===================================
+// Identificadores de tipos de café (NO MODIFICAR - usados en todo el código)
+const ROBUSTA = 'A';
+const ARABICA = 'B';
+const GEISHA = 'E';
+
+// Exportar globalmente para uso en otros archivos
+window.ROBUSTA = ROBUSTA;
+window.ARABICA = ARABICA;
+window.GEISHA = GEISHA;
+
+// ===================================
 // 1. ESTADO GLOBAL DEL JUEGO
 // ===================================
 const gameState = {
@@ -82,26 +95,29 @@ window.jugadores = jugadores;
 
 // Definición de las variedades de grano (Cultivo)
 const variedades = {
-    A: { 
-        nombre: "Robusta", 
-        costePlantacion: 500, 
-        tiempoCrecimiento: 1, 
-        produccionSacos: 5, 
-        precioVentaEmergencia: 60  // Antes 100 - Pérdida de 20€/saco
+    [ROBUSTA]: {  // 'A' - Robusta
+        nombre: "Robusta",
+        costePlantacion: 500,
+        tiempoCrecimiento: 1,
+        produccionSacos: 5,
+        precioVentaEmergencia: 60,  // Antes 100 - Pérdida de 20€/saco
+        costeAlmacenamiento: 20  // Coste por saco por ronda
     },
-    B: { 
-        nombre: "Arábica", 
-        costePlantacion: 1000, 
-        tiempoCrecimiento: 2, 
-        produccionSacos: 3, 
-        precioVentaEmergencia: 200  // Antes 250 - Pérdida de 100€/saco
+    [ARABICA]: {  // 'B' - Arábica
+        nombre: "Arábica",
+        costePlantacion: 1000,
+        tiempoCrecimiento: 2,
+        produccionSacos: 3,
+        precioVentaEmergencia: 200,  // Antes 250 - Pérdida de 100€/saco
+        costeAlmacenamiento: 30  // Coste por saco por ronda
     },
-    E: {
+    [GEISHA]: {  // 'E' - Geisha
         nombre: "Geisha",
         costePlantacion: 3000,
         tiempoCrecimiento: 4,
         produccionSacos: 1,
-        precioVentaEmergencia: 400  // Antes 600 - Pérdida significativa
+        precioVentaEmergencia: 400,  // Antes 600 - Pérdida significativa
+        costeAlmacenamiento: 50  // Coste por saco por ronda
     }
 };
 
@@ -109,10 +125,13 @@ const variedades = {
 window.variedades = variedades;
 
 const costeTostadoras = {
-    A: 1500,
-    B: 2000,
-    E: 2500
+    [ROBUSTA]: 1500,  // 'A'
+    [ARABICA]: 2000,  // 'B'
+    [GEISHA]: 2500    // 'E'
 };
+
+// Exportar costeTostadoras globalmente
+window.costeTostadoras = costeTostadoras;
 
 // Definición de los procesos de transformación
 const procesos = {

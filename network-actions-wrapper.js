@@ -9,10 +9,12 @@ let funcionesOriginales = {};
 
 function guardarFuncionesOriginales() {
     funcionesOriginales.plantar = window.plantar;
-    funcionesOriginales.comprarTostadora = window.comprarTostadora;
+    funcionesOriginales.comprarTostadora = window.comprarTostadora; // Función interna sin modal
+    funcionesOriginales.confirmarCompraTostadora = window.confirmarCompraTostadora; // Función con modal
     funcionesOriginales.procesarCafe = window.procesarCafe;
     funcionesOriginales.ejecutarVenta = window.ejecutarVenta;
-    funcionesOriginales.intentarCumplirContrato = window.intentarCumplirContrato;
+    funcionesOriginales.intentarCumplirContrato = window.intentarCumplirContrato; // Función interna sin alertas
+    funcionesOriginales.confirmarCumplirContrato = window.confirmarCumplirContrato; // Función con alertas
     funcionesOriginales.pasarTurno = window.pasarTurno;
     funcionesOriginales.iniciarRonda = window.iniciarRonda;
 }
@@ -34,10 +36,50 @@ async function plantarWrapper(tipo) {
 }
 
 async function comprarTostadoraWrapper(tipo) {
+    console.log(`🏭 comprarTostadoraWrapper llamado - tipo: ${tipo}, modo: ${gameNetwork?.gameMode}`);
+
     if (!gameNetwork || gameNetwork.gameMode === 'local') {
-        return await funcionesOriginales.comprarTostadora(tipo);
+        console.log('→ Modo local: usando función con modal');
+        return await funcionesOriginales.confirmarCompraTostadora(tipo);
     }
 
+    console.log('→ Modo online: mostrando confirmación y luego enviando por red');
+
+    // Mostrar confirmación primero
+    const jugador = window.jugadores[gameNetwork.isHost ? 0 : 1];
+
+    // Verificaciones básicas
+    if (jugador.paRestantes < 1) {
+        await mostrarAlerta('No tienes PA suficientes para comprar la tostadora.', 'advertencia');
+        return;
+    }
+
+    const estado = jugador.activos.tostadoras || {};
+    if (estado[tipo]) {
+        await mostrarAlerta(`Ya tienes la tostadora de ${window.variedades[tipo].nombre}.`, 'info');
+        return;
+    }
+
+    const coste = window.costeTostadoras?.[tipo] || { A: 1500, B: 2000, E: 2500 }[tipo];
+
+    // Mostrar confirmación
+    const confirmar = await mostrarConfirmacion(
+        `Comprar Tostadora de ${window.variedades[tipo].nombre} por ${coste} €? (Coste: 1 PA)`,
+        'Comprar Tostadora'
+    );
+
+    if (!confirmar) {
+        console.log('→ Usuario canceló la compra');
+        return; // Usuario canceló - no hacer nada, no consumir PA
+    }
+
+    if (jugador.dinero < coste) {
+        await mostrarAlerta('No tienes suficiente dinero para esta máquina.', 'error');
+        return;
+    }
+
+    // Usuario aceptó - enviar por red
+    console.log('→ Usuario aceptó, enviando por networkAction');
     return await networkAction('COMPRAR_TOSTADORA', { tipo });
 }
 
@@ -62,10 +104,51 @@ async function ejecutarVentaWrapper() {
 }
 
 async function intentarCumplirContratoWrapper(contratoId) {
+    console.log(`📋 intentarCumplirContratoWrapper llamado - contratoId: ${contratoId}, modo: ${gameNetwork?.gameMode}`);
+
     if (!gameNetwork || gameNetwork.gameMode === 'local') {
-        return await funcionesOriginales.intentarCumplirContrato(contratoId);
+        console.log('→ Modo local: usando función con validaciones');
+        return await funcionesOriginales.confirmarCumplirContrato(contratoId);
     }
 
+    console.log('→ Modo online: validando y luego enviando por red');
+
+    const jugador = window.jugadores[gameNetwork.isHost ? 0 : 1];
+    const contrato = window.contratosDisponibles?.find(c => c.id === contratoId);
+
+    // Validaciones básicas (con alertas)
+    if (!contrato) {
+        await mostrarAlerta("Contrato no encontrado", 'error');
+        return;
+    }
+
+    if (jugador.paRestantes < 1) {
+        await mostrarAlerta("No tienes PA suficientes!", 'advertencia');
+        return;
+    }
+
+    // Usamos la función de utilidad para obtener la clave exacta del inventario
+    const obtenerKeyInventario = (tipo, grano) => `${tipo}_${grano}`;
+    const inventarioKey = obtenerKeyInventario(contrato.tipo, contrato.grano);
+
+    const stockDisponible = jugador.inventario[inventarioKey] || 0;
+
+    if (stockDisponible < contrato.cantidadRequerida) {
+        // Accedemos directamente a variedades con el grano ('A', 'B' o 'E')
+        const infoVariedad = window.variedades[contrato.grano];
+        const nombreCafe = contrato.tipo === 'verde'
+            ? `${infoVariedad.nombre} Verde`
+            : `${infoVariedad.nombre} ${contrato.tipo.includes('artesanal') ? 'Premium' : 'Comercial'}`;
+
+        await mostrarAlerta(
+            `Necesitas ${contrato.cantidadRequerida} sacos de ${nombreCafe}. Solo tienes ${stockDisponible}.`,
+            'advertencia'
+        );
+        return;
+    }
+
+    // Validaciones pasadas - enviar por red
+    console.log('→ Validaciones pasadas, enviando por networkAction');
     return await networkAction('CUMPLIR_CONTRATO', { contratoId });
 }
 

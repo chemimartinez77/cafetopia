@@ -1,44 +1,55 @@
 ﻿// contratos.js - Sistema de Contratos (CORREGIDO v2)
 
+// Usar constantes de variedades para mejor legibilidad
+const ROBUSTA = window.ROBUSTA || 'A';
+const ARABICA = window.ARABICA || 'B';
+const GEISHA = window.GEISHA || 'E';
+
 const plantillasContratos = {
   pequenos: [
-    { cantidad: 1, tipo: "verde", granos: ["A", "B", "E"], nombres: ["Mercado Local", "Cafeteria Vecina", "Comprador Privado"] },
-    { cantidad: 2, tipo: "verde", granos: ["A", "B"], nombres: ["Distribuidor Local", "Exportador Pequeño"] },
-    { cantidad: 3, tipo: "tostado_artesanal", granos: ["A", "B"], nombres: ["Cafeteria Premium", "Boutique Local"] },
-    { cantidad: 4, tipo: "verde", granos: ["A"], nombres: ["Mercado Regional", "Tostador Artesanal"] }
+    { cantidad: 1, tipo: "verde", granos: [ROBUSTA, ARABICA, GEISHA], nombres: ["Mercado Local", "Cafeteria Vecina", "Comprador Privado"] },
+    { cantidad: 2, tipo: "verde", granos: [ROBUSTA, ARABICA], nombres: ["Distribuidor Local", "Exportador Pequeño"] },
+    { cantidad: 3, tipo: "tostado_artesanal", granos: [ROBUSTA, ARABICA], nombres: ["Cafeteria Premium", "Boutique Local"] },
+    { cantidad: 4, tipo: "verde", granos: [ROBUSTA], nombres: ["Mercado Regional", "Tostador Artesanal"] }
   ],
   medianos: [
-    { cantidad: 5, tipo: "verde", granos: ["A", "B"], nombres: ["Exportador Regional", "Distribuidor Nacional"] },
-    { cantidad: 6, tipo: "tostado_artesanal", granos: ["B"], nombres: ["Boutiques Europeas", "Cafeterias Premium"] },
-    { cantidad: 7, tipo: "tostado_industrial", granos: ["A", "B"], nombres: ["Supermercados Regionales", "Cadenas de Cafeterias"] },
-    { cantidad: 8, tipo: "verde", granos: ["A", "B"], nombres: ["Exportacion Internacional", "Tostadores Profesionales"] }
+    { cantidad: 5, tipo: "verde", granos: [ROBUSTA, ARABICA, GEISHA], nombres: ["Exportador Regional", "Distribuidor Nacional"] },
+    { cantidad: 6, tipo: "tostado_artesanal", granos: [ARABICA, GEISHA], nombres: ["Boutiques Europeas", "Cafeterias Premium"] },
+    { cantidad: 7, tipo: "tostado_industrial", granos: [ROBUSTA, ARABICA], nombres: ["Supermercados Regionales", "Cadenas de Cafeterias"] },
+    { cantidad: 8, tipo: "verde", granos: [ROBUSTA, ARABICA], nombres: ["Exportacion Internacional", "Tostadores Profesionales"] }
   ],
   grandes: [
-    { cantidad: 9, tipo: "tostado_industrial", granos: ["A", "B"], nombres: ["Supermercados Internacionales", "Cadenas Globales"] },
-    { cantidad: 10, tipo: "verde", granos: ["A"], nombres: ["Exportacion Masiva", "Distribuidor Mayorista"] },
-    { cantidad: 11, tipo: "tostado_artesanal", granos: ["B"], nombres: ["Boutiques Premium", "Exportacion Gourmet"] },
-    { cantidad: 12, tipo: "tostado_industrial", granos: ["A"], nombres: ["Supermercados USA", "Cadenas Globales"] }
+    { cantidad: 9, tipo: "tostado_industrial", granos: [ROBUSTA, ARABICA], nombres: ["Supermercados Internacionales", "Cadenas Globales"] },
+    { cantidad: 10, tipo: "verde", granos: [ROBUSTA, GEISHA], nombres: ["Exportacion Masiva", "Distribuidor Mayorista"] },
+    { cantidad: 11, tipo: "tostado_artesanal", granos: [ARABICA, GEISHA], nombres: ["Boutiques Premium", "Exportacion Gourmet"] },
+    { cantidad: 12, tipo: "tostado_industrial", granos: [ROBUSTA], nombres: ["Supermercados USA", "Cadenas Globales"] }
   ]
 };
 
-const objetivosContratos = { pequenos: 2, medianos: 2, grandes: 2 };
+// Sistema de contratos compartidos: 4 temporales + 2 permanentes
+const CONTRATOS_TEMPORALES = 4;
+const CONTRATOS_PERMANENTES = 2;
+const TOTAL_CONTRATOS_OBJETIVO = CONTRATOS_TEMPORALES + CONTRATOS_PERMANENTES;
+const objetivosContratos = { pequenos: 2, medianos: 2, grandes: 2 }; // Distribución inicial
 const DURACION_ANIMACION_CONTRATO = 2300;
-const TOTAL_CONTRATOS_OBJETIVO = Object.values(objetivosContratos).reduce((acc, val) => acc + val, 0);
 let contadorContratos = 0;
 const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function crearContrato(categoria) {
+function crearContrato(categoria, esPermanente = false) {
   const plantillas = plantillasContratos[categoria];
   const plantilla = plantillas[Math.floor(Math.random() * plantillas.length)];
   const grano = plantilla.granos[Math.floor(Math.random() * plantilla.granos.length)];
   const nombre = plantilla.nombres[Math.floor(Math.random() * plantilla.nombres.length)];
   const pago = calcularPago(plantilla.cantidad, plantilla.tipo, grano);
-  
+
   // Duración INICIAL del contrato (cuántas rondas desde que aparece)
-  const rondasIniciales = categoria === 'medianos' ? 3 + Math.floor(Math.random() * 2)
-                        : categoria === 'grandes' ? 4 + Math.floor(Math.random() * 2)
-                        : 2 + Math.floor(Math.random() * 2);
-  
+  // Si es permanente, rondasRestantes es null
+  const rondasIniciales = esPermanente ? null : (
+    categoria === 'medianos' ? 3 + Math.floor(Math.random() * 2)
+    : categoria === 'grandes' ? 4 + Math.floor(Math.random() * 2)
+    : 2 + Math.floor(Math.random() * 2)
+  );
+
   return {
     id: `contrato_${++contadorContratos}`,
     categoria,
@@ -50,7 +61,8 @@ function crearContrato(categoria) {
     prestigio: plantilla.cantidad <= 2 ? 1 : (categoria === 'grandes' ? 3 + Math.floor(plantilla.cantidad / 4) : 2 + Math.floor(plantilla.cantidad / 3)),
     descripcion: `Contrato de ${plantilla.cantidad} saco${plantilla.cantidad > 1 ? 's' : ''} de ${obtenerNombreTipoCafe(plantilla.tipo, grano)}`,
     rondasIniciales,
-    rondasRestantes: rondasIniciales  // Empieza con el mismo valor
+    rondasRestantes: rondasIniciales,  // null para permanentes, número para temporales
+    esPermanente  // Flag para identificar contratos permanentes
   };
 }
 
@@ -58,57 +70,80 @@ function calcularPago(cantidad, tipo, grano) {
   const variedad = variedades[grano];
   const plantacionesNecesarias = Math.ceil(cantidad / variedad.produccionSacos);
   let costeBase = plantacionesNecesarias * variedad.costePlantacion;
+  
   if (tipo !== 'verde') {
     const proceso = tipo === 'tostado_artesanal' ? procesos.TOSTADO_ARTESANAL : procesos.TOSTADO_INDUSTRIAL;
     costeBase += cantidad * proceso.costeProcesado;
   }
-  let multiplicador = 1.35;
-  if (cantidad >= 9) multiplicador = 1.65;
-  else if (cantidad >= 5) multiplicador = 1.50;
 
-  // Bonus por tipo de procesado (recompensa la complejidad)
-  if (tipo === 'tostado_artesanal') {
-    multiplicador += 0.25;  // +25% extra por artesanal
-  } else if (tipo === 'tostado_industrial') {
-    multiplicador += 0.15;  // +15% extra por industrial
-  }
+  // Multiplicadores basados en tus IDs: A (Robusta), B (Arábica), E (Geisha)
+  const multiplicadoresRareza = {
+    "A": 1.15, // Robusta: Margen pequeño, dependes del volumen.
+    "B": 1.40, // Arábica: Margen mejorado por la espera de 2 rondas.
+    "E": 1.70  // Geisha: Margen alto porque bloqueas una parcela 4 rondas.
+  };
 
-  return Math.round(costeBase * multiplicador);
+  const bonoRareza = multiplicadoresRareza[grano] || 1.0;
+
+  // Multiplicador por VOLUMEN (Premiamos mover mucha cantidad)
+  let multiplicadorVolumen = 1.10; 
+  if (cantidad >= 9) multiplicadorVolumen = 1.40; 
+  else if (cantidad >= 5) multiplicadorVolumen = 1.25;
+
+  // Bonus por PROCESADO (basado en tus multiplicadorPrecio de procesos)
+  let bonoProceso = 0;
+  if (tipo === 'tostado_artesanal') bonoProceso = 0.30; 
+  else if (tipo === 'tostado_industrial') bonoProceso = 0.15;
+
+  return Math.round(costeBase * (multiplicadorVolumen + bonoProceso) * bonoRareza);
 }
 
 let contratosDisponibles = [];
 let contratosCompletados = [];
 
+// Exportar globalmente para acceso desde la red
+window.contratosDisponibles = contratosDisponibles;
+window.contratosCompletados = contratosCompletados;
+
 // ===================================
 // GENERAR CONTRATOS PARA LLENAR HUECOS
 // ===================================
 function generarContratos() {
-  const conteo = { pequenos: 0, medianos: 0, grandes: 0 };
-  
-  // Contar cuántos hay actualmente de cada categoría
-  contratosDisponibles.forEach((c) => {
-    if (conteo[c.categoria] !== undefined) conteo[c.categoria]++;
-  });
+  const conteoTemporales = contratosDisponibles.filter(c => !c.esPermanente).length;
+  const conteoPermanentes = contratosDisponibles.filter(c => c.esPermanente).length;
 
-  console.log("📊 Estado actual de contratos:", conteo);
-  console.log("🎯 Objetivo:", objetivosContratos);
+  console.log(`📊 Estado actual: ${conteoTemporales} temporales, ${conteoPermanentes} permanentes`);
 
-  // Generar los que faltan para cada categoría
-  Object.keys(objetivosContratos).forEach((cat) => {
-    const faltantes = objetivosContratos[cat] - conteo[cat];
-    
-    if (faltantes > 0) {
-      console.log(`📝 Generando ${faltantes} contratos de categoría ${cat}`);
-      
-      for (let i = 0; i < faltantes; i++) {
-        const nuevoContrato = crearContrato(cat);
-        contratosDisponibles.push(nuevoContrato);
-        console.log(`✅ Creado: ${nuevoContrato.nombre} (${nuevoContrato.rondasRestantes} rondas)`);
-      }
+  // Generar contratos temporales faltantes (4 total)
+  const temporalesFaltantes = CONTRATOS_TEMPORALES - conteoTemporales;
+  if (temporalesFaltantes > 0) {
+    console.log(`📝 Generando ${temporalesFaltantes} contratos temporales`);
+
+    for (let i = 0; i < temporalesFaltantes; i++) {
+      // Distribuir entre categorías
+      const categorias = ['pequenos', 'medianos', 'grandes'];
+      const categoria = categorias[i % categorias.length];
+      const nuevoContrato = crearContrato(categoria, false);
+      contratosDisponibles.push(nuevoContrato);
+      console.log(`✅ Temporal creado: ${nuevoContrato.nombre} (${nuevoContrato.rondasRestantes} rondas)`);
     }
-  });
+  }
 
-  console.log(`📦 Total contratos disponibles: ${contratosDisponibles.length}/${TOTAL_CONTRATOS_OBJETIVO}`);
+  // Generar contratos permanentes faltantes (2 total)
+  const permanentesFaltantes = CONTRATOS_PERMANENTES - conteoPermanentes;
+  if (permanentesFaltantes > 0) {
+    console.log(`📝 Generando ${permanentesFaltantes} contratos permanentes`);
+
+    for (let i = 0; i < permanentesFaltantes; i++) {
+      // Los permanentes suelen ser de categorías más altas
+      const categoria = i === 0 ? 'medianos' : 'grandes';
+      const nuevoContrato = crearContrato(categoria, true);
+      contratosDisponibles.push(nuevoContrato);
+      console.log(`✅ Permanente creado: ${nuevoContrato.nombre} (SIN LIMITE)`);
+    }
+  }
+
+  console.log(`📦 Total contratos: ${contratosDisponibles.length}/${TOTAL_CONTRATOS_OBJETIVO}`);
 }
 
 // ===================================
@@ -130,41 +165,61 @@ window.asegurarContratosCompletos = asegurarContratosCompletos;
 // ===================================
 // CUMPLIR CONTRATO
 // ===================================
-async function intentarCumplirContrato(contratoId) {
+
+// Función de validación con alertas (solo para el iniciador)
+async function confirmarCumplirContrato(contratoId) {
   const jugador = obtenerJugadorActual();
   const contrato = contratosDisponibles.find((c) => c.id === contratoId);
-  
+
   if (!contrato) {
     await mostrarAlerta("Contrato no encontrado", 'error');
     return;
   }
-  
+
   if (jugador.paRestantes < 1) {
     await mostrarAlerta("No tienes PA suficientes!", 'advertencia');
     return;
   }
-  
-  const inventarioKey = contrato.tipo === 'verde' 
-    ? `verde_${contrato.grano}` 
-    : `${contrato.tipo}_${contrato.grano}`;
-  
+
+  // Usamos la función de utilidad para obtener la clave exacta
+  const inventarioKey = obtenerKeyInventario(contrato.tipo, contrato.grano);
   const stockDisponible = jugador.inventario[inventarioKey] || 0;
-  
+
   if (stockDisponible < contrato.cantidadRequerida) {
     await mostrarAlerta(
-      `Necesitas ${contrato.cantidadRequerida} sacos de ${obtenerNombreTipoCafe(contrato.tipo, contrato.grano)}. Solo tienes ${stockDisponible}.`, 
+      `Necesitas ${contrato.cantidadRequerida} sacos de ${obtenerNombreTipoCafe(contrato.tipo, contrato.grano)}. Solo tienes ${stockDisponible}.`,
       'advertencia'
     );
     return;
   }
-  
+
+  // Validaciones pasadas - ejecutar el contrato
+  await intentarCumplirContrato(contratoId);
+}
+
+// Función interna que ejecuta el cumplimiento (sin alertas, se llama desde la red o después de confirmar)
+async function intentarCumplirContrato(contratoId) {
+  const jugador = obtenerJugadorActual();
+  const contrato = contratosDisponibles.find((c) => c.id === contratoId);
+
+  if (!contrato) {
+    console.error('❌ Contrato no encontrado:', contratoId);
+    return false;
+  }
+
+  // Usamos la función de utilidad para obtener la clave exacta
+  const inventarioKey = obtenerKeyInventario(contrato.tipo, contrato.grano);
+
   // CUMPLIR CONTRATO
   jugador.inventario[inventarioKey] -= contrato.cantidadRequerida;
   jugador.dinero += contrato.pago;
   jugador.puntosVictoria += contrato.prestigio;
 
+  // Al acceder a variedades, usamos directamente contrato.grano ('A', 'B' o 'E')
+  const infoVariedad = variedades[contrato.grano];
+
   addLog(
-    `✅ CONTRATO CUMPLIDO: "${contrato.nombre}" - Ganancia: ${contrato.pago}€ (+${contrato.prestigio} PV)`,
+    `✅ CONTRATO CUMPLIDO: "${contrato.nombre}" - ${contrato.cantidadRequerida} sacos de ${infoVariedad.nombre} - ${contrato.pago}€ (+${contrato.prestigio} PV)`,
     'ganancia'
   );
 
@@ -203,6 +258,7 @@ async function intentarCumplirContrato(contratoId) {
 
   // Gastar PA y cambiar de turno automáticamente
   gastarPAyCambiarTurno(jugador, 1);
+  return true;
 }
 
 // ===================================
@@ -332,25 +388,32 @@ function actualizarUIContratos() {
       const nombreCafe = obtenerNombreTipoCafe(contrato.tipo, contrato.grano);
       const colorTipo = contrato.tipo === 'verde' ? '#ffc107' : '#8B4513';
       
-      // Lógica corregida del texto de expiración
+      // Texto de expiración según tipo de contrato
       let expiraTexto = '';
-      if (contrato.rondasRestantes === 1) {
-        expiraTexto = `⏰ Duración del contrato: ${contrato.rondasIniciales} rondas. <strong style="color: #e74c3c;">Expira esta ronda</strong>.`;
+      if (contrato.esPermanente) {
+        expiraTexto = `♾️ <strong style="color: #27ae60;">CONTRATO PERMANENTE</strong> - Sin límite de tiempo`;
+      } else if (contrato.rondasRestantes === 1) {
+        expiraTexto = `⏰ Duración: ${contrato.rondasIniciales} rondas. <strong style="color: #e74c3c;">Expira esta ronda</strong>.`;
       } else {
-        expiraTexto = `⏰ Duración del contrato: ${contrato.rondasIniciales} rondas. Expira en ${contrato.rondasRestantes} rondas.`;
+        expiraTexto = `⏰ Duración: ${contrato.rondasIniciales} rondas. Expira en ${contrato.rondasRestantes} rondas.`;
       }
       
+      // Verificar si es un contrato de Boutique Local para agregar imagen de fondo
+      const esBoutiqueLocal = contrato.nombre.includes('Boutique Local');
+
       html += `
-        <div class="contrato-card" data-contrato-id="${contrato.id}" style="border-left: 4px solid ${colorTipo};">
-          <strong>${contrato.nombre}</strong><br>
-          <small>${contrato.descripcion}</small><br>
-          📦 Requiere: ${contrato.cantidadRequerida} sacos de ${nombreCafe}<br>
-          💰 Pago: <span style="color: #27ae60; font-weight: bold;">${contrato.pago}€</span>
-          ${contrato.prestigio > 0 ? ` | ⭐ +${contrato.prestigio} PV` : ''}<br>
-          ${expiraTexto}<br>
-          <button class="btn-accion" onclick="intentarCumplirContrato('${contrato.id}')" style="margin-top: 8px;">
-            Cumplir Contrato (1 PA)
-          </button>
+        <div class="contrato-card ${esBoutiqueLocal ? 'contrato-con-fondo' : ''}" data-contrato-id="${contrato.id}" style="border-left: 4px solid ${colorTipo}; ${esBoutiqueLocal ? 'background-image: url(public/boutique.local.2.png);' : ''}">
+          <div class="contrato-contenido">
+            <strong>${contrato.nombre}</strong><br>
+            <small>${contrato.descripcion}</small><br>
+            📦 Requiere: ${contrato.cantidadRequerida} sacos de ${nombreCafe}<br>
+            💰 Pago: <span style="color: #27ae60; font-weight: bold;">${contrato.pago}€</span>
+            ${contrato.prestigio > 0 ? ` | ⭐ +${contrato.prestigio} PV` : ''}<br>
+            ${expiraTexto}<br>
+            <button class="btn-accion" onclick="confirmarCumplirContrato('${contrato.id}')" style="margin-top: 8px;">
+              Cumplir Contrato (1 PA)
+            </button>
+          </div>
         </div>
       `;
     });
@@ -379,6 +442,17 @@ function aplicarAnimacionSalidaContrato(contratoId) {
   return true;
 }
 
+// ===================================
+// FUNCIONES DE UTILIDAD
+// ===================================
+
+// Función para construir la clave del inventario de forma consistente
+function obtenerKeyInventario(tipo, grano) {
+  // tipo puede ser: 'verde', 'tostado_artesanal' o 'tostado_industrial'
+  // grano puede ser: 'A', 'B' o 'E'
+  return `${tipo}_${grano}`;
+}
+
 function obtenerNombreTipoCafe(tipo, grano) {
   const base = variedades[grano].nombre;
   if (tipo === 'verde') return `${base} Verde`;
@@ -393,33 +467,42 @@ function obtenerNombreTipoCafe(tipo, grano) {
 async function avanzarContratos() {
   console.log("\n🔄 ========== AVANZAR CONTRATOS ==========");
   console.log(`📦 Contratos al inicio: ${contratosDisponibles.length}`);
-  
+
   const contratosExpirados = [];
-  
-  // Reducir contador de rondas restantes
+
+  // Reducir contador de rondas restantes SOLO para contratos temporales
   contratosDisponibles.forEach((contrato) => {
-    contrato.rondasRestantes--;
-    console.log(`⏳ "${contrato.nombre}": ${contrato.rondasRestantes} rondas restantes`);
-    
-    if (contrato.rondasRestantes <= 0) {
-      contratosExpirados.push(contrato);
+    if (contrato.esPermanente) {
+      console.log(`♾️ "${contrato.nombre}": PERMANENTE (sin límite)`);
+    } else {
+      contrato.rondasRestantes--;
+      console.log(`⏳ "${contrato.nombre}": ${contrato.rondasRestantes} rondas restantes`);
+
+      if (contrato.rondasRestantes <= 0) {
+        contratosExpirados.push(contrato);
+      }
     }
   });
 
-  // Eliminar los que llegaron a 0
+  // Eliminar los que llegaron a 0 (solo temporales)
   if (contratosExpirados.length > 0) {
-    console.log(`❌ Expirando ${contratosExpirados.length} contrato(s)`);
-    
-    contratosDisponibles = contratosDisponibles.filter(
-      (c) => c.rondasRestantes > 0
+    console.log(`❌ Expirando ${contratosExpirados.length} contrato(s) temporal(es)`);
+
+    const contratosFiltrados = contratosDisponibles.filter(
+      (c) => c.esPermanente || c.rondasRestantes > 0
     );
-    
+
+    // Actualizar array in-place para mantener referencia
+    contratosDisponibles.length = 0;
+    contratosDisponibles.push(...contratosFiltrados);
+    window.contratosDisponibles = contratosDisponibles;
+
     const nombresExpirados = contratosExpirados.map(c => c.nombre).join(", ");
-    addLog(`❌ Contratos expirados: ${nombresExpirados}`, 'alerta');
+    addLog(`❌ Contratos temporales expirados: ${nombresExpirados}`, 'alerta');
   }
 
   console.log(`📦 Contratos después de expirar: ${contratosDisponibles.length}`);
-  
+
   // REPONER contratos hasta llegar al objetivo
   generarContratos();
   
@@ -431,5 +514,7 @@ async function avanzarContratos() {
 
 // Exportar funciones
 window.intentarCumplirContrato = intentarCumplirContrato;
+window.confirmarCumplirContrato = confirmarCumplirContrato;
 window.avanzarContratos = avanzarContratos;
 window.generarContratos = generarContratos;
+window.obtenerKeyInventario = obtenerKeyInventario; // Función de utilidad para consistencia

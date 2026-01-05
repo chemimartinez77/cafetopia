@@ -1,11 +1,29 @@
 // server.js - Servidor Socket.io para CAFETOPIA
 const express = require('express');
 const http = require('http');
+const https = require('https');
+const fs = require('fs');
 const socketIO = require('socket.io');
 const path = require('path');
 
 const app = express();
-const server = http.createServer(app);
+
+// Intentar cargar certificados SSL si existen
+let server;
+const sslKeyPath = path.join(__dirname, 'ssl', 'key.pem');
+const sslCertPath = path.join(__dirname, 'ssl', 'cert.pem');
+
+if (fs.existsSync(sslKeyPath) && fs.existsSync(sslCertPath)) {
+    const options = {
+        key: fs.readFileSync(sslKeyPath),
+        cert: fs.readFileSync(sslCertPath)
+    };
+    server = https.createServer(options, app);
+    console.log('🔒 Servidor HTTPS habilitado');
+} else {
+    server = http.createServer(app);
+    console.log('⚠️ Servidor HTTP (sin SSL)');
+}
 const io = socketIO(server, {
     cors: {
         origin: "*",
