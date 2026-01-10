@@ -1,28 +1,23 @@
-﻿// contratos.js - Sistema de Contratos (CORREGIDO v2)
-
-// Usar constantes de variedades para mejor legibilidad
-const ROBUSTA = window.ROBUSTA || 'A';
-const ARABICA = window.ARABICA || 'B';
-const GEISHA = window.GEISHA || 'E';
+// contratos.js - Sistema de Contratos (CORREGIDO v2)
 
 const plantillasContratos = {
   pequenos: [
-    { cantidad: 1, tipo: "verde", granos: [ROBUSTA, ARABICA, GEISHA], nombres: ["Mercado Local", "Cafeteria Vecina", "Comprador Privado"] },
-    { cantidad: 2, tipo: "verde", granos: [ROBUSTA, ARABICA], nombres: ["Distribuidor Local", "Exportador Pequeño"] },
-    { cantidad: 3, tipo: "tostado_artesanal", granos: [ROBUSTA, ARABICA], nombres: ["Cafeteria Premium", "Boutique Local"] },
-    { cantidad: 4, tipo: "verde", granos: [ROBUSTA], nombres: ["Mercado Regional", "Tostador Artesanal"] }
+    { cantidad: 1, tipo: "verde", granos: ['A', 'B', 'E'], nombres: ["Mercado Local", "Cafeteria Vecina", "Comprador Privado"] },
+    { cantidad: 2, tipo: "verde", granos: ['A', 'B'], nombres: ["Distribuidor Local", "Exportador Pequeño"] },
+    { cantidad: 3, tipo: "tostado_artesanal", granos: ['A', 'B'], nombres: ["Boutique Local", "Cafeteria Premium"] },
+    { cantidad: 4, tipo: "verde", granos: ['A'], nombres: ["Mercado Local", "Distribuidor Local"] }
   ],
   medianos: [
-    { cantidad: 5, tipo: "verde", granos: [ROBUSTA, ARABICA, GEISHA], nombres: ["Exportador Regional", "Distribuidor Nacional"] },
-    { cantidad: 6, tipo: "tostado_artesanal", granos: [ARABICA, GEISHA], nombres: ["Boutiques Europeas", "Cafeterias Premium"] },
-    { cantidad: 7, tipo: "tostado_industrial", granos: [ROBUSTA, ARABICA], nombres: ["Supermercados Regionales", "Cadenas de Cafeterias"] },
-    { cantidad: 8, tipo: "verde", granos: [ROBUSTA, ARABICA], nombres: ["Exportacion Internacional", "Tostadores Profesionales"] }
+    { cantidad: 5, tipo: "verde", granos: ['A', 'B', 'E'], nombres: ["Mercado Local", "Distribuidor Local"] },
+    { cantidad: 6, tipo: "tostado_artesanal", granos: ['B', 'E'], nombres: ["Boutique Local", "Cafeteria Premium"] },
+    { cantidad: 7, tipo: "tostado_industrial", granos: ['A', 'B'], nombres: ["Supermercados Regionales", "Cadenas de Cafeterias"] },
+    { cantidad: 8, tipo: "verde", granos: ['A', 'B'], nombres: ["Distribuidor Local", "Mercado Local"] }
   ],
   grandes: [
-    { cantidad: 9, tipo: "tostado_industrial", granos: [ROBUSTA, ARABICA], nombres: ["Supermercados Internacionales", "Cadenas Globales"] },
-    { cantidad: 10, tipo: "verde", granos: [ROBUSTA, GEISHA], nombres: ["Exportacion Masiva", "Distribuidor Mayorista"] },
-    { cantidad: 11, tipo: "tostado_artesanal", granos: [ARABICA, GEISHA], nombres: ["Boutiques Premium", "Exportacion Gourmet"] },
-    { cantidad: 12, tipo: "tostado_industrial", granos: [ROBUSTA], nombres: ["Supermercados USA", "Cadenas Globales"] }
+    { cantidad: 9, tipo: "tostado_industrial", granos: ['A', 'B'], nombres: ["Supermercados Internacionales", "Cadenas Globales"] },
+    { cantidad: 10, tipo: "verde", granos: ['A', 'E'], nombres: ["Mercado Local", "Distribuidor Local"] },
+    { cantidad: 11, tipo: "tostado_artesanal", granos: ['B', 'E'], nombres: ["Boutique Local", "Exportacion Gourmet"] },
+    { cantidad: 12, tipo: "tostado_industrial", granos: ['A'], nombres: ["Supermercados USA", "Cadenas Globales"] }
   ]
 };
 
@@ -357,6 +352,74 @@ async function procesarCafe(tipoGrano, tipoProceso, cantidadForzada = null) {
 }
 
 // ===================================
+// GENERACIÓN DE IMAGEN PARA CONTRATOS
+// ===================================
+/**
+ * Genera el nombre de archivo de imagen para un contrato basado en:
+ * - Nombre del negocio (ej: "Boutique Local" -> "boutique.local")
+ * - Variedad de café (A/B/E -> robusta/arabica/geisha)
+ * - Tipo de procesado (verde/tostado_artesanal/tostado_industrial -> verde/premium/comercial)
+ *
+ * Formato: public/{negocio}.{variedad}.{procesado}.png
+ * Ejemplo: public/boutique.local.arabica.premium.png
+ */
+function generarImagenContrato(contrato) {
+  // 1. Extraer solo el nombre del negocio (antes del " - ")
+  // Ejemplo: "Boutique Local - Arábica" -> "Boutique Local"
+  const nombreCompleto = contrato.nombre;
+  const nombreNegocio = nombreCompleto.split(' - ')[0] // Separar por " - " y tomar la primera parte
+    .toLowerCase()
+    .replace(/\s+/g, '.') // Reemplazar espacios con puntos
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Eliminar acentos
+
+  // 2. Convertir código de variedad a nombre
+  const mapaVariedades = {
+    'A': 'robusta',
+    'B': 'arabica',
+    'E': 'geisha'
+  };
+  const nombreVariedad = mapaVariedades[contrato.grano] || 'robusta';
+
+  // 3. Convertir tipo de procesado
+  let tipoProcesado = 'verde';
+  if (contrato.tipo === 'tostado_artesanal') {
+    tipoProcesado = 'premium';
+  } else if (contrato.tipo === 'tostado_industrial') {
+    tipoProcesado = 'comercial';
+  }
+
+  // 4. Construir nombre de archivo
+  const nombreArchivo = `public/${nombreNegocio}.${nombreVariedad}.${tipoProcesado}.png`;
+
+  // 5. Lista de imágenes conocidas (actualizar cuando se añadan más)
+  const imagenesDisponibles = [
+    'public/boutique.local.arabica.premium.png',
+    'public/boutique.local.robusta.premium.png',
+    'public/distribuidor.local.arabica.verde.png',
+    'public/distribuidor.local.robusta.verde.png',
+    'public/mercado.local.arabica.verde.png',
+    'public/mercado.local.geisha.verde.png',
+    'public/mercado.local.robusta.verde.png'
+  ];
+
+  // 6. Debug: mostrar qué archivo se está buscando
+  console.log(`🖼️ Buscando imagen para "${nombreCompleto}"`);
+  console.log(`   Negocio: "${nombreNegocio}", Variedad: "${nombreVariedad}", Procesado: "${tipoProcesado}"`);
+  console.log(`   Archivo generado: "${nombreArchivo}"`);
+  console.log(`   ¿Existe? ${imagenesDisponibles.includes(nombreArchivo)}`);
+
+  // 7. Verificar si la imagen existe en la lista
+  if (imagenesDisponibles.includes(nombreArchivo)) {
+    console.log(`   ✅ Imagen encontrada!`);
+    return nombreArchivo;
+  }
+
+  // Si no existe, retornar null (no se aplicará imagen de fondo)
+  console.log(`   ❌ Imagen no encontrada`);
+  return null;
+}
+
+// ===================================
 // ACTUALIZACIÓN DE UI DE CONTRATOS
 // ===================================
 function actualizarUIContratos() {
@@ -398,11 +461,11 @@ function actualizarUIContratos() {
         expiraTexto = `⏰ Duración: ${contrato.rondasIniciales} rondas. Expira en ${contrato.rondasRestantes} rondas.`;
       }
       
-      // Verificar si es un contrato de Boutique Local para agregar imagen de fondo
-      const esBoutiqueLocal = contrato.nombre.includes('Boutique Local');
+      // Generar nombre de archivo de imagen basado en nombre del contrato, variedad y tipo
+      const imagenFondo = generarImagenContrato(contrato);
 
       html += `
-        <div class="contrato-card ${esBoutiqueLocal ? 'contrato-con-fondo' : ''}" data-contrato-id="${contrato.id}" style="border-left: 4px solid ${colorTipo}; ${esBoutiqueLocal ? 'background-image: url(public/boutique.local.2.png);' : ''}">
+        <div class="contrato-card ${imagenFondo ? 'contrato-con-fondo' : ''}" data-contrato-id="${contrato.id}" style="border-left: 4px solid ${colorTipo}; ${imagenFondo ? `background-image: url(${imagenFondo});` : ''}">
           <div class="contrato-contenido">
             <strong>${contrato.nombre}</strong><br>
             <small>${contrato.descripcion}</small><br>

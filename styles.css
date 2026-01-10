@@ -733,10 +733,10 @@ h1 {
     }
 }
 
-/* Estilos para contratos con imagen de fondo (Boutique Local) */
+/* Estilos para contratos con imagen de fondo */
 .contrato-card.contrato-con-fondo {
-    background-size: auto 100%;
-    background-position: right center;
+    background-size: 140px auto;
+    background-position: right 5px center;
     background-repeat: no-repeat;
     position: relative;
 }
@@ -744,7 +744,7 @@ h1 {
 .contrato-card.contrato-con-fondo .contrato-contenido {
     position: relative;
     z-index: 1;
-    padding-right: 140px;
+    padding-right: 155px;
 }
 
 .contrato-card.contrato-con-fondo strong,

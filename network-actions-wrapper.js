@@ -161,10 +161,22 @@ async function pasarTurnoWrapper() {
 }
 
 async function iniciarRondaWrapper() {
+    console.log('🔄 iniciarRondaWrapper() llamado');
+    console.log('📡 gameNetwork:', gameNetwork ? `modo: ${gameNetwork.gameMode}` : 'undefined');
+    console.log('📝 funcionesOriginales.iniciarRonda:', typeof funcionesOriginales.iniciarRonda);
+
     if (!gameNetwork || gameNetwork.gameMode === 'local') {
-        return await funcionesOriginales.iniciarRonda();
+        console.log('→ Ejecutando en modo local, llamando a función original');
+        if (typeof funcionesOriginales.iniciarRonda === 'function') {
+            return await funcionesOriginales.iniciarRonda();
+        } else {
+            console.error('❌ ERROR: funcionesOriginales.iniciarRonda NO ES UNA FUNCIÓN');
+            console.error('funcionesOriginales:', funcionesOriginales);
+            return;
+        }
     }
 
+    console.log('→ Ejecutando en modo online, enviando por red');
     return await networkAction('INICIAR_RONDA', {});
 }
 

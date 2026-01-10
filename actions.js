@@ -325,10 +325,19 @@ async function pasarTurno() {
 window.pasarTurno = pasarTurno;
 
 async function iniciarRonda() {
+    console.log('🎮 iniciarRonda() LLAMADA');
+    console.log('📊 Estado antes:', {
+        partidaIniciada: gameState.partidaIniciada,
+        ronda: gameState.rondaActual,
+        pa_jugador1: jugadores[0].paRestantes,
+        pa_jugador2: jugadores[1].paRestantes
+    });
+
     const btnIniciar = document.getElementById('btn-iniciar-ronda');
     const textoNuevaRonda = 'Nueva ronda';
 
     if (!gameState.partidaIniciada) {
+        console.log('✅ Primera ronda - inicializando juego');
         gameState.partidaIniciada = true;
         gameState.rondaActual = 1;
         gameState.jugadorActual = 0;
@@ -336,13 +345,42 @@ async function iniciarRonda() {
 
         // Dar PA a todos los jugadores
         jugadores.forEach(j => j.paRestantes = 3);
+        console.log('✅ PA asignados:', jugadores.map(j => `${j.nombre}: ${j.paRestantes}`));
 
         if (btnIniciar) btnIniciar.textContent = textoNuevaRonda;
         addLog(`--- RONDA ${gameState.rondaActual} INICIADA ---`, 'ronda');
         addLog(`Todos los jugadores reciben 3 PA.`, 'info');
         addLog(`Comienza ${jugadores[gameState.jugadorInicial].nombre}`, 'info');
-        await asegurarContratosCompletos();
+
+        console.log('📋 Llamando a asegurarContratosCompletos()...');
+        console.log('🔍 Verificando window.asegurarContratosCompletos:', typeof window.asegurarContratosCompletos);
+        console.log('🔍 window.generarContratos:', typeof window.generarContratos);
+        console.log('🔍 window.avanzarContratos:', typeof window.avanzarContratos);
+
+        if (typeof window.asegurarContratosCompletos === 'function') {
+            await window.asegurarContratosCompletos();
+            console.log('✅ asegurarContratosCompletos() completado');
+        } else {
+            console.error('❌ ERROR: window.asegurarContratosCompletos no está definida');
+            console.error('❌ Intentando llamar directamente a generarContratos()...');
+            if (typeof window.generarContratos === 'function') {
+                window.generarContratos();
+                if (typeof window.actualizarUIContratos === 'function') {
+                    window.actualizarUIContratos();
+                }
+            }
+        }
+
+        console.log('🖼️ Llamando a actualizarIU()...');
         actualizarIU();
+        console.log('✅ actualizarIU() completado');
+
+        console.log('📊 Estado después:', {
+            partidaIniciada: gameState.partidaIniciada,
+            ronda: gameState.rondaActual,
+            pa_jugador1: jugadores[0].paRestantes,
+            pa_jugador2: jugadores[1].paRestantes
+        });
         return;
     }
 

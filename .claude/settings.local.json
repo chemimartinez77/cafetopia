@@ -12,7 +12,8 @@
       "Bash(ipconfig:*)",
       "Bash(netsh advfirewall firewall add rule:*)",
       "Bash(openssl req:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(ls:*)"
     ]
   }
 }
