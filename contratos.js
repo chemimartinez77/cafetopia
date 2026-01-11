@@ -189,11 +189,16 @@ async function confirmarCumplirContrato(contratoId) {
   }
 
   // Validaciones pasadas - ejecutar el contrato
-  await intentarCumplirContrato(contratoId);
+  // Usar funcionesOriginales para evitar loop con el wrapper
+  if (window.funcionesOriginales && window.funcionesOriginales.intentarCumplirContrato) {
+    await window.funcionesOriginales.intentarCumplirContrato(contratoId);
+  } else {
+    await intentarCumplirContratoInterno(contratoId);
+  }
 }
 
 // Función interna que ejecuta el cumplimiento (sin alertas, se llama desde la red o después de confirmar)
-async function intentarCumplirContrato(contratoId) {
+async function intentarCumplirContratoInterno(contratoId) {
   const jugador = obtenerJugadorActual();
   const contrato = contratosDisponibles.find((c) => c.id === contratoId);
 
@@ -254,6 +259,11 @@ async function intentarCumplirContrato(contratoId) {
   // Gastar PA y cambiar de turno automáticamente
   gastarPAyCambiarTurno(jugador, 1);
   return true;
+}
+
+// Función pública que delega a la interna (para el wrapper de red)
+async function intentarCumplirContrato(contratoId) {
+  return await intentarCumplirContratoInterno(contratoId);
 }
 
 // ===================================

@@ -749,11 +749,16 @@ async function confirmarCompraTostadora(tipoGrano) {
     }
 
     // Usuario aceptó - ejecutar la compra
-    await comprarTostadora(tipoGrano);
+    // Usar funcionesOriginales para evitar loop con el wrapper
+    if (window.funcionesOriginales && window.funcionesOriginales.comprarTostadora) {
+        await window.funcionesOriginales.comprarTostadora(tipoGrano);
+    } else {
+        await comprarTostadoraInterno(tipoGrano);
+    }
 }
 
 // Función interna que ejecuta la compra (se llama después de confirmar o desde la red)
-async function comprarTostadora(tipoGrano) {
+async function comprarTostadoraInterno(tipoGrano) {
     const jugador = obtenerJugadorActual();
     const estado = jugador.activos.tostadoras || {};
     if (!jugador.activos.tostadoras) {
@@ -769,6 +774,11 @@ async function comprarTostadora(tipoGrano) {
     actualizarIU();
     gastarPAyCambiarTurno(jugador, 1);
     return true;
+}
+
+// Función pública que delega a la interna (para el wrapper de red)
+async function comprarTostadora(tipoGrano) {
+    return await comprarTostadoraInterno(tipoGrano);
 }
 
 async function abrirTostadora(tipoGrano) {
