@@ -473,7 +473,7 @@ function actualizarUIContratos() {
             💰 Pago: <span style="color: #27ae60; font-weight: bold;">${contrato.pago}€</span>
             ${contrato.prestigio > 0 ? ` | ⭐ +${contrato.prestigio} PV` : ''}<br>
             ${expiraTexto}<br>
-            <button class="btn-accion" onclick="confirmarCumplirContrato('${contrato.id}')" style="margin-top: 8px;">
+            <button class="btn-accion" onclick="intentarCumplirContrato('${contrato.id}')" style="margin-top: 8px;">
               Cumplir Contrato (1 PA)
             </button>
           </div>

@@ -55,7 +55,12 @@ let jugadores = [
                 B: false,
                 E: false
             },
-            cafeterias_propias: 0
+            cafeterias_propias: 0,
+            silos: 0  // Número de silos comprados (+15 sacos cada uno)
+        },
+        almacenamiento: {
+            capacidadBase: 20,  // Capacidad gratis inicial
+            capacidadTotal: 20  // Se recalcula: base + (silos * 15)
         }
     },
     {
@@ -81,7 +86,12 @@ let jugadores = [
                 B: false,
                 E: false
             },
-            cafeterias_propias: 0
+            cafeterias_propias: 0,
+            silos: 0  // Número de silos comprados (+15 sacos cada uno)
+        },
+        almacenamiento: {
+            capacidadBase: 20,  // Capacidad gratis inicial
+            capacidadTotal: 20  // Se recalcula: base + (silos * 15)
         }
     }
 ];
@@ -132,6 +142,20 @@ const costeTostadoras = {
 
 // Exportar costeTostadoras globalmente
 window.costeTostadoras = costeTostadoras;
+
+// ===================================
+// SISTEMA DE ALMACENAMIENTO
+// ===================================
+const almacenamientoConfig = {
+    capacidadBase: 20,        // Capacidad gratis inicial
+    costeSilo: 2500,          // Coste de cada silo
+    capacidadPorSilo: 15,     // +15 sacos por silo
+    limiteSilos: 5,           // Máximo 5 silos por jugador
+    excesoMaximoGratis: 10    // Hasta 10 sacos de exceso pagan tarifa, más de 10 → venta forzada
+};
+
+// Exportar configuración
+window.almacenamientoConfig = almacenamientoConfig;
 
 // Definición de los procesos de transformación
 const procesos = {

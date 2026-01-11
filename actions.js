@@ -251,6 +251,38 @@ function actualizarIU() {
         }
     });
 
+    // Actualizar información de almacenamiento
+    const sacosVerdeTotal = (jugador.inventario['verde_A'] || 0) +
+                             (jugador.inventario['verde_B'] || 0) +
+                             (jugador.inventario['verde_E'] || 0);
+    const capacidadTotal = jugador.almacenamiento.capacidadTotal;
+    const silosActuales = jugador.activos.silos || 0;
+    const capacidadSilos = silosActuales * almacenamientoConfig.capacidadPorSilo;
+
+    const capacidadActualEl = document.getElementById('capacidad-actual');
+    const capacidadTotalEl = document.getElementById('capacidad-total');
+    const silosActualesEl = document.getElementById('silos-actuales');
+    const capacidadSilosEl = document.getElementById('capacidad-silos');
+
+    if (capacidadActualEl) capacidadActualEl.textContent = sacosVerdeTotal;
+    if (capacidadTotalEl) capacidadTotalEl.textContent = capacidadTotal;
+    if (silosActualesEl) silosActualesEl.textContent = silosActuales;
+    if (capacidadSilosEl) capacidadSilosEl.textContent = capacidadSilos;
+
+    // Actualizar botón de comprar silo
+    const btnComprarSilo = document.getElementById('btn-comprar-silo');
+    if (btnComprarSilo) {
+        if (silosActuales >= almacenamientoConfig.limiteSilos) {
+            btnComprarSilo.textContent = `Máximo de silos alcanzado (${almacenamientoConfig.limiteSilos})`;
+            btnComprarSilo.setAttribute('disabled', 'disabled');
+        } else if (paRestantes > 0) {
+            btnComprarSilo.textContent = `Construir Silo (${almacenamientoConfig.costeSilo}€, 1 PA)`;
+            btnComprarSilo.removeAttribute('disabled');
+        } else {
+            btnComprarSilo.setAttribute('disabled', 'disabled');
+        }
+    }
+
     // Actualizar resumen de todos los jugadores
     actualizarResumenJugadores();
 }
@@ -452,34 +484,88 @@ function avanzarCultivos(jugador) {
 }
 
 function pagarMantenimiento(jugador) {
-    let costeTotal = 0;
-    let desglose = [];
+    // Calcular total de sacos en inventario (solo grano verde)
+    let sacosTotal = 0;
+    const inventarioPorTipo = {};
 
     for (const tipo in jugador.inventario) {
         if (tipo.startsWith('verde_')) {
-            // Extraer el tipo de grano (A, B, E) del nombre del inventario
-            const tipoGrano = tipo.split('_')[1]; // verde_A -> A
+            const tipoGrano = tipo.split('_')[1];
             const cantidad = jugador.inventario[tipo];
-
-            if (cantidad > 0 && variedades[tipoGrano]) {
-                const costePorSaco = variedades[tipoGrano].costeAlmacenamiento;
-                const costeGrano = cantidad * costePorSaco;
-                costeTotal += costeGrano;
-                desglose.push(`${cantidad} ${variedades[tipoGrano].nombre} (${costeGrano}€)`);
+            if (cantidad > 0) {
+                sacosTotal += cantidad;
+                inventarioPorTipo[tipoGrano] = cantidad;
             }
         }
     }
 
-    if (jugador.dinero < costeTotal) {
-        addLog(`ADVERTENCIA: Deuda de ${(costeTotal - jugador.dinero).toFixed(2)} EUR en almacenamiento`, 'alerta');
+    // Calcular capacidad total
+    const capacidadTotal = jugador.almacenamiento.capacidadTotal;
+    const exceso = Math.max(0, sacosTotal - capacidadTotal);
+
+    // Si no hay exceso, no hay coste
+    if (exceso === 0) {
+        if (sacosTotal > 0) {
+            addLog(`📦 Almacén: ${sacosTotal}/${capacidadTotal} sacos - Sin coste de exceso`, 'info');
+        }
+        return;
     }
 
-    jugador.dinero -= costeTotal;
+    // Exceso de 1-10 sacos: Pagar tarifa de Don Miguel
+    if (exceso <= almacenamientoConfig.excesoMaximoGratis) {
+        let costeTotal = 0;
+        const desglose = [];
 
-    if (costeTotal > 0) {
-        const detalles = desglose.length > 0 ? ` [${desglose.join(', ')}]` : '';
-        addLog(`Costo de almacenamiento pagado: ${costeTotal.toFixed(2)} EUR${detalles}`, 'gasto');
+        // Calcular el coste por los sacos en exceso (distribuido proporcionalmente)
+        for (const tipoGrano in inventarioPorTipo) {
+            const cantidad = inventarioPorTipo[tipoGrano];
+            const proporcion = cantidad / sacosTotal;
+            const sacosExcesoTipo = Math.ceil(exceso * proporcion);
+            const costePorSaco = variedades[tipoGrano].costeAlmacenamiento;
+            const costeGrano = sacosExcesoTipo * costePorSaco;
+            costeTotal += costeGrano;
+            desglose.push(`${sacosExcesoTipo} ${variedades[tipoGrano].nombre} (${costeGrano}€)`);
+        }
+
+        jugador.dinero -= costeTotal;
+        addLog(
+            `⚠️ Don Miguel cobra ${costeTotal}€ por ${exceso} sacos de exceso [${desglose.join(', ')}]`,
+            'gasto'
+        );
+        return;
     }
+
+    // Exceso de +10 sacos: Venta forzada al 50%
+    addLog(`❌ ¡ALMACÉN LLENO! Don Miguel se ve obligado a vender tu excedente`, 'alerta');
+
+    const sacosVendidos = {};
+    let dineroRecibido = 0;
+
+    for (const tipoGrano in inventarioPorTipo) {
+        const cantidad = inventarioPorTipo[tipoGrano];
+        const proporcion = cantidad / sacosTotal;
+        const sacosVenderTipo = Math.ceil(exceso * proporcion);
+
+        if (sacosVenderTipo > 0 && jugador.inventario[`verde_${tipoGrano}`] >= sacosVenderTipo) {
+            jugador.inventario[`verde_${tipoGrano}`] -= sacosVenderTipo;
+            const precioNormal = variedades[tipoGrano].precioVentaEmergencia;
+            const precioForzado = Math.floor(precioNormal * 0.5);
+            const ganancia = sacosVenderTipo * precioForzado;
+            dineroRecibido += ganancia;
+            sacosVendidos[tipoGrano] = { cantidad: sacosVenderTipo, ganancia };
+        }
+    }
+
+    jugador.dinero += dineroRecibido;
+
+    const detalleVenta = Object.keys(sacosVendidos).map(tipo =>
+        `${sacosVendidos[tipo].cantidad} ${variedades[tipo].nombre} (${sacosVendidos[tipo].ganancia}€)`
+    ).join(', ');
+
+    addLog(
+        `💸 Venta forzada (50%): ${detalleVenta} - Total: +${dineroRecibido}€`,
+        'gasto'
+    );
 }
 
 async function plantar(tipoGrano) {
@@ -772,6 +858,63 @@ window.confirmarCompraTostadora = confirmarCompraTostadora;
 window.abrirTostadora = abrirTostadora;
 window.cerrarModalTostado = cerrarModalTostado;
 window.confirmarTostado = confirmarTostado;
+
+// ===================================
+// E2. SISTEMA DE ALMACENAMIENTO - SILOS
+// ===================================
+
+async function confirmarComprarSilo() {
+    const jugador = obtenerJugadorActual();
+    const silosActuales = jugador.activos.silos || 0;
+
+    if (silosActuales >= almacenamientoConfig.limiteSilos) {
+        await mostrarAlerta(`Ya tienes el máximo de silos permitidos (${almacenamientoConfig.limiteSilos}).`, 'info');
+        return;
+    }
+
+    if (jugador.dinero < almacenamientoConfig.costeSilo) {
+        await mostrarAlerta(`No tienes suficiente dinero. Necesitas ${almacenamientoConfig.costeSilo}€.`, 'advertencia');
+        return;
+    }
+
+    if (jugador.paRestantes < 1) {
+        await mostrarAlerta('No tienes PA suficientes!', 'advertencia');
+        return;
+    }
+
+    const nuevaCapacidad = almacenamientoConfig.capacidadBase + ((silosActuales + 1) * almacenamientoConfig.capacidadPorSilo);
+    const confirmar = await mostrarConfirmacion(
+        `¿Comprar Silo por ${almacenamientoConfig.costeSilo}€?\\n\\n` +
+        `+${almacenamientoConfig.capacidadPorSilo} sacos de capacidad\\n` +
+        `Nueva capacidad total: ${nuevaCapacidad} sacos`
+    );
+
+    if (!confirmar) return;
+
+    await comprarSilo();
+}
+
+async function comprarSilo() {
+    const jugador = obtenerJugadorActual();
+
+    jugador.dinero -= almacenamientoConfig.costeSilo;
+    jugador.activos.silos = (jugador.activos.silos || 0) + 1;
+    jugador.almacenamiento.capacidadTotal = almacenamientoConfig.capacidadBase +
+        (jugador.activos.silos * almacenamientoConfig.capacidadPorSilo);
+
+    addLog(
+        `🏗️ Silo construido por ${almacenamientoConfig.costeSilo}€ - ` +
+        `Capacidad: ${jugador.almacenamiento.capacidadTotal} sacos (+${almacenamientoConfig.capacidadPorSilo})`,
+        'ganancia'
+    );
+
+    actualizarIU();
+    gastarPAyCambiarTurno(jugador, 1);
+    return true;
+}
+
+window.confirmarComprarSilo = confirmarComprarSilo;
+window.comprarSilo = comprarSilo;
 
 // ===================================
 // F. ANIMACIÓN DE DINERO
